@@ -3,38 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catalogo KHAOS</title>
+    <title>Catálogo — KHAOS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="estilos.css">
     <script src="objetos.js" defer></script>
 </head>
 <body>
-    
-      <!-- NAV  -->
 
+  <!-- NAV  -->
   <nav class="nav">
-
     <div class="nav-logo">
       <span>KHAOS</span>
     </div>
-
     <div class="nav-links">
-        <div class="nav-links">
-      <a href="index.html">INICIO </a>
-      <a href="catalogo.html">CATALOGO </a>
-      <a href="index.html #faq">PREGUNTAS FRECUENTES</a>
-      <a href="#">UNETE</a>
+      <a href="index.html">INICIO</a>
+      <a href="catalogo.html" class="active">CATÁLOGO</a>
+      <a href="index.html#faq">PREGUNTAS</a>
+      <a href="index.html#newsletter">UNIRME</a>
     </div>
-
     <div class="nav-icons">
-
-      <button aria-label="Buscar"></button>
-      
+      <button aria-label="Buscar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      </button>
       <button aria-label="Carrito" id="cart-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
         <span class="cart-count">0</span>
       </button>
-
     </div>
-
   </nav>
 
   <!-- CARRITO MODAL -->
@@ -57,187 +54,114 @@
     </div>
   </div>
 
-<!-- COLECCIONES -->
-
+  <!-- COLECCIONES -->
   <section class="collections" id="colecciones">
-
     <div class="section-header">
-
-      <p class="section-subtitle">
-        ÚLTIMOS DROPS
-      </p>
-
-      <h2 class="section-title">
-        COLECCIONES
-      </h2>
-
+      <p class="section-subtitle">// ÚLTIMOS DROPS</p>
+      <h2 class="section-title">COLECCIONES</h2>
     </div>
 
     <div class="collections-grid">
 
       <!-- CARD 1 -->
-
       <article class="product-card">
-
-        <img src="img/look-01.jpg" alt="Conjunto Cyber Chain">
-
-        <div class="product-card__info">
-
-          <h3>
-            Conjunto Cyber Chain
-          </h3>
-
-          <p>
-            $189.000 COP
-          </p>
-
-          <button class="add-to-cart" data-name="Conjunto Cyber Chain" data-price="189000">
-            AGREGAR AL CARRITO
-          </button>
-
+        <div class="product-card-img-wrap">
+          <img src="..." alt="Conjunto Cyber Chain">
+          <div class="product-card-overlay">
+            <button class="add-to-cart" data-name="Conjunto Cyber Chain" data-price="189000">
+              + AGREGAR
+            </button>
+          </div>
+          <span class="product-card-tag">NUEVO</span>
         </div>
-
+        <div class="product-card__info">
+          <h3>Conjunto Cyber Chain</h3>
+          <p>$189.000 COP</p>
+        </div>
       </article>
 
       <!-- CARD 2 -->
-
       <article class="product-card">
-
-        <img src="img/look-02.jpg" alt="Pantalón Latex Flare">
-
-        <div class="product-card__info">
-
-          <h3>
-            Pantalón Latex Flare
-          </h3>
-
-          <p>
-            $245.000 COP
-          </p>
-
-          <button class="add-to-cart" data-name="Pantalón Latex Flare" data-price="245000">
-            AGREGAR AL CARRITO
-          </button>
-
+        <div class="product-card-img-wrap">
+          <img src="..." alt="Pantalón Latex Flare">
+          <div class="product-card-overlay">
+            <button class="add-to-cart" data-name="Pantalón Latex Flare" data-price="245000">
+              + AGREGAR
+            </button>
+          </div>
         </div>
-
+        <div class="product-card__info">
+          <h3>Pantalón Latex Flare</h3>
+          <p>$245.000 COP</p>
+        </div>
       </article>
 
       <!-- CARD 3 -->
-
       <article class="product-card">
-
-        <img src="img/look-03.jpg" alt="Set Armor Mesh">
-
-        <div class="product-card__info">
-
-          <h3>
-            Set Armor Mesh
-          </h3>
-
-          <button class="add-to-cart" data-name="Set Armor Mesh" data-price="210000">
-            AGREGAR AL CARRITO
-          </button>
-
-          <p>
-            $210.000 COP
-          </p>
-
+        <div class="product-card-img-wrap">
+          <img src="..." alt="Set Armor Mesh">
+          <div class="product-card-overlay">
+            <button class="add-to-cart" data-name="Set Armor Mesh" data-price="210000">
+              + AGREGAR
+            </button>
+          </div>
+          <span class="product-card-tag">HOT</span>
         </div>
-
+        <div class="product-card__info">
+          <h3>Set Armor Mesh</h3>
+          <p>$210.000 COP</p>
+        </div>
       </article>
 
       <!-- CARD 4 -->
-
       <article class="product-card">
-
-        <img src="img/look-04.jpg" alt="Top Halter Chrome">
-
-        <div class="product-card__info">
-
-          <h3>
-            Top Halter Chrome
-          </h3>
-
-          <button class="add-to-cart" data-name="Top Halter Chrome" data-price="135000">
-            AGREGAR AL CARRITO
-          </button>
-
-          <p>
-            $135.000 COP
-          </p>
-
+        <div class="product-card-img-wrap">
+          <img src="..." alt="Top Halter Chrome">
+          <div class="product-card-overlay">
+            <button class="add-to-cart" data-name="Top Halter Chrome" data-price="135000">
+              + AGREGAR
+            </button>
+          </div>
         </div>
-
+        <div class="product-card__info">
+          <h3>Top Halter Chrome</h3>
+          <p>$135.000 COP</p>
+        </div>
       </article>
 
     </div>
-
   </section>
 
   <!-- FEATURE -->
-
   <section class="feature-banner">
-
-    <p>
-      “El caos no es desorden. Es identidad.”
-    </p>
-
+    <p>"El caos no es desorden. Es identidad."</p>
   </section>
 
   <!-- HOMBRE / MUJER  -->
-
   <section class="gender-section">
 
-    <!-- HOMBRE -->
-
     <article class="gender-card" id="hombre">
-
-      <img src="img/hombre.jpg" alt="Colección Hombre">
-
+      <img src="..." alt="Colección Hombre">
       <div class="gender-card__content">
-
-        <h2>
-          HOMBRE
-        </h2>
-
-        <a href="#">
-          EXPLORAR
-        </a>
-
+        <h2>HOMBRE</h2>
+        <a href="#">EXPLORAR</a>
       </div>
-
     </article>
 
-    <!-- MUJER -->
-
     <article class="gender-card" id="mujer">
-
-      <img src="img/mujer.jpg" alt="Colección Mujer">
-
+      <img src="..." alt="Colección Mujer">
       <div class="gender-card__content">
-
-        <h2>
-          MUJER
-        </h2>
-
-        <a href="#">
-          EXPLORAR
-        </a>
-
+        <h2>MUJER</h2>
+        <a href="#">EXPLORAR</a>
       </div>
-
     </article>
 
   </section>
 
-</body>
-<footer Class="footer">
-    <p>
-        © 2025 KHAOS
-      </p>
+  <footer class="footer">
+    <p>© 2025 KHAOS</p>
+    <p>Bogotá, Colombia</p>
+  </footer>
 
-      <p>
-        Bogotá, Colombia
-      </p>
+</body>
 </html>

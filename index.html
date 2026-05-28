@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KHAOS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="estilos.css">
   <script src="objetos.js" defer></script>
 </head>
@@ -11,30 +14,25 @@
 <body>
 
   <!-- NAV  -->
-
   <nav class="nav">
-
     <div class="nav-logo">
       <span>KHAOS</span>
     </div>
     <div class="nav-links">
-        <div class="nav-links">
-      <a href="index.html">INICIO </a>
-      <a href="catalogo.html">CATALOGO </a>
-      <a href="index.html #faq">PREGUNTAS FRECUENTES</a>
-      <a href="#">UNETE</a>
+      <a href="index.html">INICIO</a>
+      <a href="catalogo.html">CATÁLOGO</a>
+      <a href="#faq">PREGUNTAS</a>
+      <a href="#newsletter">UNIRME</a>
     </div>
-
     <div class="nav-icons">
-
-      <button aria-label="Buscar"></button>
-      
+      <button aria-label="Buscar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      </button>
       <button aria-label="Carrito" id="cart-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
         <span class="cart-count">0</span>
       </button>
-
     </div>
-
   </nav>
 
   <!-- CARRITO MODAL -->
@@ -57,153 +55,80 @@
     </div>
   </div>
 
-  <!--  HERO  -->
-
+  <!-- HERO  -->
   <section class="hero">
-
     <div class="hero-content">
-
-      <p class="hero-tag">
-        NUEVA COLECCIÓN 2026
-      </p>
-
-      <h1 class="hero-title">
-        KHAOS
-      </h1>
-
-      <p class="hero-text">
-        Moda urbana experimental para quienes no quieren verse iguales.
-      </p>
-
-      <a href="#" class="btn">
-        EXPLORAR COLECCIÓN
-      </a>
-
+      <p class="hero-tag">— NUEVA COLECCIÓN 2026</p>
+      <h1 class="hero-title">KHAOS</h1>
+      <p class="hero-text">Moda urbana experimental para quienes no quieren verse iguales.</p>
+      <a href="catalogo.html" class="btn">EXPLORAR COLECCIÓN</a>
     </div>
-
     <div class="heroimage">
-
-      <img src="..." alt="Colección KHAOS">
-
+      <div class="heroimage-placeholder">
+        <span class="heroimage-label">LOOK_2026.01</span>
+        <div class="heroimage-scanline"></div>
+        <div class="heroimage-corner tl"></div>
+        <div class="heroimage-corner tr"></div>
+        <div class="heroimage-corner bl"></div>
+        <div class="heroimage-corner br"></div>
+      </div>
     </div>
-
   </section>
 
   <!-- FAQ -->
-
-  <section class="faq">
-
+  <section class="faq" id="faq">
     <div class="section-header">
-
-      <p class="section-subtitle">
-        INFORMACIÓN
-      </p>
-
-      <h2 class="section-title">
-        PREGUNTAS FRECUENTES
-      </h2>
-
+      <p class="section-subtitle">// INFORMACIÓN</p>
+      <h2 class="section-title">PREGUNTAS FRECUENTES</h2>
     </div>
-
     <div class="faq-list">
-
       <div class="faq-item">
-
         <button class="faq-question">
           ¿Cuánto tarda el envío?
+          <span class="faq-icon">+</span>
         </button>
-
         <div class="faq-answer">
-
-          <p>
-            Los pedidos nacionales tardan entre 2 y 5 días hábiles.
-          </p>
-
+          <p>Los pedidos nacionales tardan entre 2 y 5 días hábiles. Recibirás un correo con el número de rastreo una vez despachado.</p>
         </div>
-
       </div>
-
       <div class="faq-item">
-
         <button class="faq-question">
           ¿Las piezas son limitadas?
+          <span class="faq-icon">+</span>
         </button>
-
         <div class="faq-answer">
-
-          <p>
-            Sí. Cada drop tiene unidades limitadas.
-          </p>
-
+          <p>Sí. Cada drop tiene unidades limitadas. Una vez agotada una referencia, no se repone en la misma temporada.</p>
         </div>
-
       </div>
-
       <div class="faq-item">
-
         <button class="faq-question">
           ¿Puedo hacer cambios?
+          <span class="faq-icon">+</span>
         </button>
-
         <div class="faq-answer">
-
-          <p>
-            Puedes solicitar cambios durante los primeros 15 días.
-          </p>
-
+          <p>Puedes solicitar cambios durante los primeros 15 días. Escríbenos vía Instagram con tu número de orden.</p>
         </div>
-
       </div>
-
     </div>
-
   </section>
 
   <!-- NEWSLETTER-->
-
   <section class="newsletter" id="newsletter">
-
     <div class="newsletter__content">
-
-      <p class="section-subtitle">
-        KHAOS
-      </p>
-
-      <h2>
-        ACCESO ANTICIPADO A NUEVOS DROPS
-      </h2>
-
-      <p class="newsletter-text">
-        Sin spam. Solo lanzamientos exclusivos.
-      </p>
-
+      <p class="section-subtitle">// KHAOS CLUB</p>
+      <h2>ACCESO ANTICIPADO<br>A NUEVOS DROPS</h2>
+      <p class="newsletter-text">Sin spam. Solo lanzamientos exclusivos.</p>
       <form class="newsletter-form">
-
-        <input
-          type="email"
-          placeholder="tu@email.com"
-        >
-
-        <button type="submit">
-          UNIRME
-        </button>
-
+        <input type="email" placeholder="tu@email.com">
+        <button type="submit">UNIRME</button>
       </form>
-
     </div>
-
   </section>
 
-</body>
   <footer class="footer">
-
-      <p>
-        © 2025 KHAOS
-      </p>
-
-      <p>
-        Bogotá, Colombia
-      </p>
-
+    <p>© 2025 KHAOS</p>
+    <p>Bogotá, Colombia</p>
   </footer>
+
+</body>
 </html>
