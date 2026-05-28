@@ -12,11 +12,9 @@
 </head>
 <body>
 
-  <!-- NAV  -->
+  <!-- NAV -->
   <nav class="nav">
-    <div class="nav-logo">
-      <span>KHAOS</span>
-    </div>
+    <div class="nav-logo"><span>KHAOS</span></div>
     <div class="nav-links">
       <a href="index.html">INICIO</a>
       <a href="catalogo.html" class="active">CATÁLOGO</a>
@@ -49,82 +47,190 @@
           <p>Total:</p>
           <p id="cart-total">$0</p>
         </div>
-        <button class="checkout-btn">COMPRAR</button>
+        <button class="checkout-btn" id="open-checkout">COMPRAR</button>
       </div>
     </div>
   </div>
 
-  <!-- COLECCIONES -->
+  <!-- CHECKOUT MODAL -->
+  <div class="checkout-modal" id="checkout-modal">
+    <div class="checkout-modal__bg" id="checkout-bg"></div>
+    <div class="checkout-modal__box">
+      <div class="checkout-modal__header">
+        <h2>FINALIZAR COMPRA</h2>
+        <button class="checkout-modal__close" id="checkout-close">✕</button>
+      </div>
+      <div class="checkout-modal__body" id="checkout-body">
+
+        <!-- Resumen de orden -->
+        <div class="checkout-summary" id="checkout-summary">
+        </div>
+
+        <!-- Formulario -->
+        <form class="checkout-form" id="checkout-form" novalidate>
+
+          <p class="checkout-section-label">// DATOS PERSONALES</p>
+
+          <div class="checkout-form-row">
+            <div class="checkout-field">
+              <label>NOMBRE</label>
+              <input type="text" placeholder="Tu nombre" required>
+            </div>
+            <div class="checkout-field">
+              <label>APELLIDO</label>
+              <input type="text" placeholder="Tu apellido" required>
+            </div>
+          </div>
+
+          <div class="checkout-field">
+            <label>CORREO</label>
+            <input type="email" placeholder="tu@email.com" required>
+          </div>
+
+          <div class="checkout-field">
+            <label>TELÉFONO</label>
+            <input type="tel" placeholder="+57 300 000 0000">
+          </div>
+
+          <p class="checkout-section-label">// ENVÍO</p>
+
+          <div class="checkout-field">
+            <label>DIRECCIÓN</label>
+            <input type="text" placeholder="Calle, número, apto..." required>
+          </div>
+
+          <div class="checkout-form-row">
+            <div class="checkout-field">
+              <label>CIUDAD</label>
+              <input type="text" placeholder="Bogotá" required>
+            </div>
+            <div class="checkout-field">
+              <label>DEPARTAMENTO</label>
+              <select>
+                <option value="">Seleccionar</option>
+                <option>Bogotá D.C.</option>
+                <option>Antioquia</option>
+                <option>Valle del Cauca</option>
+                <option>Cundinamarca</option>
+                <option>Atlántico</option>
+                <option>Santander</option>
+                <option>Otro</option>
+              </select>
+            </div>
+          </div>
+
+          <p class="checkout-section-label">// PAGO</p>
+
+          <div class="checkout-field">
+            <label>MÉTODO DE PAGO</label>
+            <select id="payment-method">
+              <option value="">Seleccionar</option>
+              <option value="card">Tarjeta débito / crédito</option>
+              <option value="nequi">Nequi</option>
+              <option value="daviplata">Daviplata</option>
+              <option value="pse">PSE</option>
+              <option value="contraentrega">Contra entrega (Bogotá)</option>
+            </select>
+          </div>
+
+          <!-- Campos tarjeta (se muestran solo si eligen tarjeta) -->
+          <div id="card-fields" style="display:none; display:flex; flex-direction:column; gap:1rem;">
+            <div class="checkout-field">
+              <label>NÚMERO DE TARJETA</label>
+              <input type="text" placeholder="0000 0000 0000 0000" maxlength="19" id="card-number">
+            </div>
+            <div class="checkout-form-row">
+              <div class="checkout-field">
+                <label>VENCIMIENTO</label>
+                <input type="text" placeholder="MM/AA" maxlength="5" id="card-expiry">
+              </div>
+              <div class="checkout-field">
+                <label>CVV</label>
+                <input type="text" placeholder="•••" maxlength="4" id="card-cvv">
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="checkout-submit">CONFIRMAR ORDEN →</button>
+
+        </form>
+      </div>
+
+      <!-- Pantalla de éxito -->
+      <div class="checkout-success" id="checkout-success">
+        <div class="checkout-success__icon">✓</div>
+        <h3>ORDEN CONFIRMADA</h3>
+        <p>Tu pedido ha sido recibido.<br>Recibirás un correo con los detalles y tu número de seguimiento.</p>
+        <div class="checkout-success__order" id="order-number">ORD-KHAOS-######</div>
+        <a href="catalogo.html" class="btn" id="success-close-btn">SEGUIR COMPRANDO</a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- COLECCIONES — SCATTERED -->
   <section class="collections" id="colecciones">
     <div class="section-header">
       <p class="section-subtitle">// ÚLTIMOS DROPS</p>
-      <h2 class="section-title">COLECCIONES</h2>
+      <h2 class="section-title">ACCESORIOS</h2>
     </div>
 
-    <div class="collections-grid">
+    <div class="collections-grid scattered">
 
-      <!-- CARD 1 -->
-      <article class="product-card">
+      <!-- CARD 1 — grande izquierda -->
+      <article class="product-card" data-ref="ACC-001">
         <div class="product-card-img-wrap">
-          <img src="..." alt="Conjunto Cyber Chain">
+          <img src="imagenes/manos.jpg" alt="Rings Collection">
           <div class="product-card-overlay">
-            <button class="add-to-cart" data-name="Conjunto Cyber Chain" data-price="189000">
-              + AGREGAR
-            </button>
+            <button class="add-to-cart" data-name="Rings Collection" data-price="189000">+ AGREGAR</button>
           </div>
           <span class="product-card-tag">NUEVO</span>
         </div>
         <div class="product-card__info">
-          <h3>Conjunto Cyber Chain</h3>
+          <h3>Rings Collection</h3>
           <p>$189.000 COP</p>
         </div>
       </article>
 
-      <!-- CARD 2 -->
-      <article class="product-card">
+      <!-- CARD 2 — alta derecha centro -->
+      <article class="product-card" data-ref="ACC-002">
         <div class="product-card-img-wrap">
-          <img src="..." alt="Pantalón Latex Flare">
+          <img src="imagenes/anillopuas.jpg" alt="Spike Crown Ring">
           <div class="product-card-overlay">
-            <button class="add-to-cart" data-name="Pantalón Latex Flare" data-price="245000">
-              + AGREGAR
-            </button>
+            <button class="add-to-cart" data-name="Spike Crown Ring" data-price="245000">+ AGREGAR</button>
           </div>
         </div>
         <div class="product-card__info">
-          <h3>Pantalón Latex Flare</h3>
+          <h3>Spike Crown Ring</h3>
           <p>$245.000 COP</p>
         </div>
       </article>
 
-      <!-- CARD 3 -->
-      <article class="product-card">
+      <!-- CARD 3 — cuadrada superior derecha -->
+      <article class="product-card" data-ref="ACC-003">
         <div class="product-card-img-wrap">
-          <img src="..." alt="Set Armor Mesh">
+          <img src="imagenes/anillorojo.jpg" alt="Red Chain Bangle">
           <div class="product-card-overlay">
-            <button class="add-to-cart" data-name="Set Armor Mesh" data-price="210000">
-              + AGREGAR
-            </button>
+            <button class="add-to-cart" data-name="Red Chain Bangle" data-price="210000">+ AGREGAR</button>
           </div>
           <span class="product-card-tag">HOT</span>
         </div>
         <div class="product-card__info">
-          <h3>Set Armor Mesh</h3>
+          <h3>Red Chain Bangle</h3>
           <p>$210.000 COP</p>
         </div>
       </article>
 
-      <!-- CARD 4 -->
-      <article class="product-card">
+      <!-- CARD 4 — ancha inferior derecha -->
+      <article class="product-card" data-ref="ACC-004">
         <div class="product-card-img-wrap">
-          <img src="..." alt="Top Halter Chrome">
+          <img src="imagenes/anillos.jpg" alt="Multi Ring Set">
           <div class="product-card-overlay">
-            <button class="add-to-cart" data-name="Top Halter Chrome" data-price="135000">
-              + AGREGAR
-            </button>
+            <button class="add-to-cart" data-name="Multi Ring Set" data-price="135000">+ AGREGAR</button>
           </div>
         </div>
         <div class="product-card__info">
-          <h3>Top Halter Chrome</h3>
+          <h3>Multi Ring Set</h3>
           <p>$135.000 COP</p>
         </div>
       </article>
@@ -132,30 +238,27 @@
     </div>
   </section>
 
-  <!-- FEATURE -->
+  <!-- FEATURE BANNER -->
   <section class="feature-banner">
     <p>"El caos no es desorden. Es identidad."</p>
   </section>
 
-  <!-- HOMBRE / MUJER  -->
+  <!-- HOMBRE / MUJER -->
   <section class="gender-section">
-
     <article class="gender-card" id="hombre">
-      <img src="..." alt="Colección Hombre">
+      <img src="imagenes/negro.png" alt="Colección Hombre">
       <div class="gender-card__content">
         <h2>HOMBRE</h2>
         <a href="#">EXPLORAR</a>
       </div>
     </article>
-
     <article class="gender-card" id="mujer">
-      <img src="..." alt="Colección Mujer">
+      <img src="imagenes/accesorios.gif" alt="Colección Accesorios">
       <div class="gender-card__content">
-        <h2>MUJER</h2>
+        <h2>ACCESORIOS</h2>
         <a href="#">EXPLORAR</a>
       </div>
     </article>
-
   </section>
 
   <footer class="footer">
