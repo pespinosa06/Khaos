@@ -29,11 +29,33 @@
 
       <button aria-label="Buscar"></button>
       
-      <button aria-label="Carrito"></button>
+      <button aria-label="Carrito" id="cart-btn">
+        <span class="cart-count">0</span>
+      </button>
 
     </div>
 
   </nav>
+
+  <!-- CARRITO MODAL -->
+  <div class="cart-modal" id="cart-modal">
+    <div class="cart-content">
+      <div class="cart-header">
+        <h2>CARRITO</h2>
+        <button class="close-cart" id="close-cart">✕</button>
+      </div>
+      <div class="cart-items" id="cart-items">
+        <p class="empty-cart">Carrito vacío</p>
+      </div>
+      <div class="cart-footer">
+        <div class="cart-total">
+          <p>Total:</p>
+          <p id="cart-total">$0</p>
+        </div>
+        <button class="checkout-btn">COMPRAR</button>
+      </div>
+    </div>
+  </div>
 
 <!-- COLECCIONES -->
 
@@ -69,6 +91,10 @@
             $189.000 COP
           </p>
 
+          <button class="add-to-cart" data-name="Conjunto Cyber Chain" data-price="189000">
+            AGREGAR AL CARRITO
+          </button>
+
         </div>
 
       </article>
@@ -89,6 +115,10 @@
             $245.000 COP
           </p>
 
+          <button class="add-to-cart" data-name="Pantalón Latex Flare" data-price="245000">
+            AGREGAR AL CARRITO
+          </button>
+
         </div>
 
       </article>
@@ -104,6 +134,10 @@
           <h3>
             Set Armor Mesh
           </h3>
+
+          <button class="add-to-cart" data-name="Set Armor Mesh" data-price="210000">
+            AGREGAR AL CARRITO
+          </button>
 
           <p>
             $210.000 COP
@@ -124,6 +158,10 @@
           <h3>
             Top Halter Chrome
           </h3>
+
+          <button class="add-to-cart" data-name="Top Halter Chrome" data-price="135000">
+            AGREGAR AL CARRITO
+          </button>
 
           <p>
             $135.000 COP
