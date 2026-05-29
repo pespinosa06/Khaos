@@ -349,11 +349,4 @@ document.addEventListener('DOMContentLoaded', () => {
       target.scrollIntoView({ behavior: 'smooth' });
     });
   });
-
-  /* =====================================
-      CONSOLA
-  ===================================== */
-  console.log('%cKHAOS', 'color:#009dff;font-family:monospace;font-size:2rem;font-weight:900;letter-spacing:0.4em;');
-  console.log('%cSistema online.', 'color:#6a6a72;font-family:monospace;letter-spacing:0.2em;font-size:.8rem;');
-
 });
