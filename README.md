@@ -9,26 +9,45 @@ comunidad por canales e historias.
 - Se quitó el marco de teléfono y la barra de estado simulada: en móvil la
   app ocupa toda la pantalla; en escritorio se muestra una columna
   centrada con un panel de marca (`mvp.css`).
-- Sesión persistente: al registrarte o iniciar sesión, la app recuerda tu
-  perfil, closet, posts, likes y plan al recargar (`store.js`, localStorage).
-  Los datos de tarjeta nunca se guardan.
+- Sesión persistente: la app recuerda tu sesión al recargar. Los datos de
+  tarjeta nunca se guardan.
 - Se retiró el listener de `postMessage` que permitía a otra página
   controlar la app. Los saltos entre pantallas quedan solo en modo
   desarrollo (`?dev`, y `?dev&screen=home` para abrir una pantalla).
 - Metadatos para móvil: `theme-color`, ícono, manifest e Open Graph.
 
-## Pendiente (siguiente etapa)
+## Supabase (cuentas, posts y closet)
 
-Cuentas reales, creación y publicación de posts, y closet en la nube con
-Supabase. Para conectarlo basta reemplazar `store.js` por un adaptador
-con la misma interfaz (`load` / `save` / `clear`).
+El proyecto de Supabase "Khaos" ya está conectado (`config.js`, `store.js`):
+
+- **Cuentas reales:** registro e inicio de sesión con correo y contraseña.
+  La edad (18–25) y el nombre de usuario se validan también en la base de datos.
+- **Posts compartidos:** lo que publiques en la comunidad lo ven los demás
+  usuarios. Los posts anónimos nunca exponen al autor (se leen por la
+  función `community_posts()`).
+- **My closet en la nube:** las prendas que agregues se guardan en tu cuenta.
+- **Seguridad:** RLS activo en todas las tablas; cada usuario solo ve y
+  modifica lo suyo. La clave de `config.js` es la "publishable", pública por
+  diseño. Nunca pongas la clave `secret` / `service_role` en el repo.
+
+Tablas: `profiles`, `posts`, `closet_items` (esquema en las migraciones del
+proyecto Supabase). Sin conexión o sin sesión, la app guarda lo local en el
+dispositivo.
+
+Para entrar directo sin confirmar el correo, desactiva *Confirm email* en
+Supabase → Authentication → Sign In / Providers → Email. Si queda activo, la
+app avisa al usuario que revise su correo.
+
+Pendiente: likes y respuestas compartidas, fotos del closet en Storage
+(hoy van dentro de la tabla), moderación de posts y pagos reales.
 
 ## Estructura
 
 - `index.html` — punto de entrada.
 - `app.css` — estilos y animaciones (incluye la tipografía Stretch Pro embebida).
 - `mvp.css` — layout responsive del MVP.
-- `store.js` — capa de datos local.
+- `config.js` — URL y clave pública de Supabase.
+- `store.js` — capa de datos: local + Supabase (auth, posts, closet).
 - `template.html` — markup de todas las pantallas (fuente editable).
 - `template-data.js` — copia generada de `template.html`. Tras editar el
   markup, ejecutar `node scripts/build-template.js`.

@@ -187,7 +187,7 @@ const ONB = [
 class Component extends DCLogic {
   state = {
     paidText: '', confirmOut: false, helpQ: '', helpOpen: -1, plan: 'mensual', paying: false, paid: false, payId: 'card1', addingCard: false, cNum: '', cName: '', cExp: '', cCvv: '', cardError: '', payCards: [{ id: 'card1', brand: 'VISA', last: '4242', name: 'Tú' }],
-    screen: 'splash', onb: 0, regMode: 'signup', authed: false,
+    screen: 'splash', onb: 0, regMode: 'signup', authed: false, regBusy: false,
     fName: '', fAge: '', fEmail: '', fPass: '', fTerms: false, regError: '',
     notif: false, step: 0, answers: [], msgs: null, phase: 'q', draft: '', identity: null,
     tryOn: {}, trySel: null, tryTab: 'all', tryConsent: null, trySaved: false,
@@ -279,14 +279,79 @@ class Component extends DCLogic {
   // --- Persistencia local (MVP sin backend) -------------------------------
   // Guarda solo datos del usuario, nunca datos de tarjeta. Todo pasa por
   // window.KhaosStore (store.js), pensado para cambiarse luego por Supabase.
-  static PERSIST_KEYS = ['authed', 'fName', 'fEmail', 'fAge', 'plan', 'paid', 'paidText', 'closet', 'posts', 'myPosts', 'liked', 'pinned', 'favs'];
+  static PERSIST_KEYS = ['authed', 'fName', 'fEmail', 'fAge', 'plan', 'paid', 'paidText', 'closet', 'liked', 'pinned', 'favs'];
   hydrate() {
     const saved = window.KhaosStore && window.KhaosStore.load();
     if (!saved) return;
     const patch = {};
     Component.PERSIST_KEYS.forEach((k) => { if (saved[k] !== undefined) patch[k] = saved[k]; });
-    if (patch.authed) patch.screen = 'home';
+    if (KhaosStore.enabled) { delete patch.authed; delete patch.myPosts; }
+    if (KhaosStore.enabled && KhaosStore.hasSession()) { patch.authed = true; patch.screen = 'home'; }
+    else if (KhaosStore.enabled) patch.authed = false;
+    else if (patch.authed) patch.screen = 'home';
     this.setState(patch);
+    if (KhaosStore.enabled && KhaosStore.hasSession()) this.startSync();
+  }
+  // --- Sincronización con Supabase ------------------------------------------
+  static relTime(iso) {
+    const m = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+    if (m < 1) return 'ahora';
+    if (m < 60) return m + ' min';
+    const h = Math.round(m / 60);
+    return h < 24 ? h + ' h' : Math.round(h / 24) + ' d';
+  }
+  startSync() {
+    clearInterval(this._syncT);
+    this.loadRemote();
+    this._syncT = setInterval(() => { if (!document.hidden) this.loadRemote(); }, 30000);
+  }
+  stopSync() { clearInterval(this._syncT); this._syncT = null; }
+  loadRemote() {
+    if (!KhaosStore.enabled || !KhaosStore.hasSession()) return Promise.resolve();
+    return Promise.all([KhaosStore.listPosts(100), KhaosStore.listCloset(), KhaosStore.getProfile()]).then(([rows, items, prof]) => {
+      const posts = JSON.parse(JSON.stringify(SEED));
+      let mine = 0;
+      rows.slice().reverse().forEach((r) => {
+        if (r.mine) mine++;
+        const p = { id: r.id, user: r.anon ? 'Anónimo' : (r.author || 'tú'), anon: r.anon, circle: r.circle, mine: r.mine, text: r.body, time: Component.relTime(r.created_at), likes: 0 };
+        (posts[r.channel] = posts[r.channel] || []).unshift(p);
+      });
+      const ids = new Set(items.map((i) => i.id));
+      const remote = items.map((i) => ({ id: i.id, name: i.name, cat: i.cat, img: i.img, color: 'oklch(0.422 0.02 250)', worn: i.worn || 0, synced: true }));
+      this.setState((st) => ({
+        posts, myPosts: mine,
+        closet: [...remote, ...st.closet.filter((c) => !c.synced && !ids.has(c.id))],
+        fName: (prof && prof.username) || st.fName
+      }));
+    }).catch((e) => {
+      if (e && (e.code === 'no_session' || e.status === 401)) this.endSession();
+      else console.warn('KHAOS: no se pudo sincronizar', e);
+    });
+  }
+  endSession() {
+    this.stopSync();
+    this.setState((st) => ({
+      authed: false, screen: 'splash', regMode: 'login', fPass: '',
+      posts: JSON.parse(JSON.stringify(SEED)), myPosts: 0,
+      closet: st.closet.filter((c) => !c.synced)
+    }));
+  }
+  remotePost(channel, body, anon, circle) {
+    if (!KhaosStore.enabled || !KhaosStore.hasSession()) return;
+    KhaosStore.addPost({ channel, body, anon, circle }).then(() => this.loadRemote()).catch((e) => { console.warn('KHAOS: no se pudo publicar', e); this.loadRemote(); });
+  }
+  authError(e) {
+    const m = {
+      user_already_exists: 'Ese correo ya tiene cuenta. Inicia sesión.',
+      email_exists: 'Ese correo ya tiene cuenta. Inicia sesión.',
+      invalid_credentials: 'Correo o contraseña incorrectos.',
+      weak_password: 'La contraseña es muy débil. Usa al menos 6 caracteres.',
+      over_request_rate_limit: 'Demasiados intentos. Espera un momento.',
+      over_email_send_rate_limit: 'Demasiados intentos. Espera un momento.',
+      email_address_invalid: 'Revisa tu correo.',
+      network: 'Sin conexión. Revisa tu internet e inténtalo de nuevo.'
+    };
+    return m[e && e.code] || (e && e.status >= 500 ? 'No pudimos crear tu cuenta. Revisa tus datos (edad 18–25).' : 'Algo salió mal. Inténtalo de nuevo.');
   }
   persist() {
     if (!window.KhaosStore) return;
@@ -294,6 +359,7 @@ class Component extends DCLogic {
     this._persistT = setTimeout(() => {
       const out = {};
       Component.PERSIST_KEYS.forEach((k) => { out[k] = this.state[k]; });
+      if (out.closet) out.closet = out.closet.filter((c) => !c.synced); // lo sincronizado vive en el servidor
       window.KhaosStore.save(out);
     }, 250);
   }
@@ -433,17 +499,34 @@ class Component extends DCLogic {
   submitReg = (e) => {
     e.preventDefault();
     const s = this.state;
+    if (s.regBusy) return;
+    const email = s.fEmail.trim();
     if (s.regMode === 'signup') {
       const age = parseInt(s.fAge, 10);
       if (!s.fName.trim()) return this.setState({ regError: 'Escribe un nombre de usuario.' });
       if (!age || age < 18 || age > 25) return this.setState({ regError: 'KHAOS es solo para personas de 18 a 25 años.' });
-      if (!s.fEmail.includes('@')) return this.setState({ regError: 'Revisa tu correo.' });
+      if (!email.includes('@')) return this.setState({ regError: 'Revisa tu correo.' });
       if (s.fPass.length < 6) return this.setState({ regError: 'La contraseña necesita mínimo 6 caracteres.' });
       if (!s.fTerms) return this.setState({ regError: 'Debes aceptar los términos y las normas.' });
-      this.setState({ regError: '', screen: 'home', authed: true });
+      if (!KhaosStore.enabled) return this.setState({ regError: '', screen: 'home', authed: true });
+      this.setState({ regBusy: true, regError: '' });
+      KhaosStore.signUp(email, s.fPass, { username: s.fName.trim(), age })
+        .then((r) => {
+          if (r.needsConfirm) return this.setState({ regBusy: false, regError: 'Te enviamos un correo: confírmalo para entrar.' });
+          this.setState({ regBusy: false, regError: '', screen: 'home', authed: true, fPass: '' });
+          this.startSync();
+        })
+        .catch((err) => this.setState({ regBusy: false, regError: this.authError(err) }));
     } else {
-      if (!s.fEmail.includes('@') || !s.fPass) return this.setState({ regError: 'Correo o contraseña incorrectos.' });
-      this.setState({ regError: '', screen: 'home', authed: true, fName: s.fName || s.fEmail.split('@')[0] });
+      if (!email.includes('@') || !s.fPass) return this.setState({ regError: 'Correo o contraseña incorrectos.' });
+      if (!KhaosStore.enabled) return this.setState({ regError: '', screen: 'home', authed: true, fName: s.fName || email.split('@')[0] });
+      this.setState({ regBusy: true, regError: '' });
+      KhaosStore.signIn(email, s.fPass)
+        .then(() => {
+          this.setState({ regBusy: false, regError: '', screen: 'home', authed: true, fPass: '', fName: s.fName || email.split('@')[0] });
+          this.startSync();
+        })
+        .catch((err) => this.setState({ regBusy: false, regError: this.authError(err) }));
     }
   };
 
@@ -561,9 +644,12 @@ class Component extends DCLogic {
   addSnap = () => { const v = this.addVideoRef.current; if (!v || !v.videoWidth) return; const url = this.shrink(v, v.videoWidth, v.videoHeight); this.stopAddCam(); this.setState(st => ({ add: { ...st.add, step: 'form', img: url } })); };
   saveAdd = () => {
     const a = this.state.add; if (!a || !a.img) return;
-    const id = Date.now(); const name = (a.name || '').trim() || ('Mi ' + a.cat.toLowerCase());
+    const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now(); const name = (a.name || '').trim() || ('Mi ' + a.cat.toLowerCase());
     this.stopAddCam();
     this.setState(st => ({ closet: [{ id, name, cat: a.cat, img: a.img, color: 'oklch(0.422 0.02 250)', worn: 0 }, ...st.closet], closetCat: a.cat, add: null }));
+    if (KhaosStore.enabled && KhaosStore.hasSession() && typeof id === 'string') {
+      KhaosStore.addClosetItem({ id, name, cat: a.cat, img: a.img }).then(() => this.setState(st => ({ closet: st.closet.map(c => c.id === id ? { ...c, synced: true } : c) }))).catch((e) => console.warn('KHAOS: no se pudo guardar la prenda', e));
+    }
   };
   openBuild = () => this.setState(st => ({ build: { slot: 'top', picks: { head: st.outfit.head || null, eyes: st.outfit.eyes || null, top: st.outfit.top || null, bottom: st.outfit.bottom || null, shoes: st.outfit.shoes || null } } }));
   closeBuild = () => this.setState({ build: null });
@@ -581,6 +667,7 @@ class Component extends DCLogic {
     if (!names.length || s.shared) return;
     const posts = { ...s.posts, looks: [{ user: s.fName || 'tú', mine: true, text: 'Fit de hoy: ' + names.join(' + '), time: 'ahora', likes: 0 }, ...s.posts.looks] };
     this.setState(x => ({ posts, shared: true, myPosts: x.myPosts + 1 }));
+    this.remotePost('looks', 'Fit de hoy: ' + names.join(' + '), false, false);
   };
 
   sendPost = (e) => {
@@ -590,12 +677,14 @@ class Component extends DCLogic {
     const ch = this.state.channel;
     const posts = { ...this.state.posts, [ch]: [{ user: this.state.anon ? 'Anónimo' : (this.state.fName || 'tú'), anon: this.state.anon, circle: this.state.circle, mine: true, text: t, time: 'ahora', likes: 0 }, ...this.state.posts[ch]] };
     this.setState(s => ({ posts, postDraft: '', myPosts: s.myPosts + 1 }));
+    this.remotePost(ch, t, !!this.state.anon, !!this.state.circle);
   };
 
   shareResult = () => {
     const id = IDENTITIES[this.state.identity];
     const posts = { ...this.state.posts, looks: [{ user: this.state.fName || 'tú', text: 'Mi identidad KHAOS: ' + id.n.toUpperCase() + ' ✦', time: 'ahora', likes: 0 }, ...this.state.posts.looks] };
     this.setState(s => ({ posts, channel: 'looks', screen: 'comunidad', myPosts: s.myPosts + 1 }));
+    this.remotePost('looks', 'Mi identidad KHAOS: ' + id.n.toUpperCase() + ' ✦', false, false);
   };
 
   renderVals() {
@@ -870,7 +959,7 @@ class Component extends DCLogic {
         { label: 'Redes', value: '@khaos', go: () => {} }
       ],
       logoutLabel: s.confirmOut ? '¿Seguro? Toca otra vez para salir' : 'Cerrar sesión',
-      logout: () => { if (!s.confirmOut) { this.setState({ confirmOut: true }); setTimeout(() => this.setState({ confirmOut: false }), 3000); return; } this.setState({ confirmOut: false, helpQ: '', helpOpen: -1, screen: 'splash', onb: 0, regMode: 'login', authed: false, fPass: '' }); },
+      logout: () => { if (!s.confirmOut) { this.setState({ confirmOut: true }); setTimeout(() => this.setState({ confirmOut: false }), 3000); return; } KhaosStore.signOut(); this.stopSync(); this.setState((st) => ({ confirmOut: false, helpQ: '', helpOpen: -1, screen: 'splash', onb: 0, regMode: 'login', authed: false, fPass: '', posts: JSON.parse(JSON.stringify(SEED)), myPosts: 0, closet: st.closet.filter((c) => !c.synced) })); },
       tabs: [['comunidad', '#', 'Comunidad'], ['asesor', '✦', 'Asesor'], ['home', '⌂', 'Inicio'], ['articulos', '▤', 'Historias'], ['perfil', '◉', 'Perfil']].map(([k, icon, label]) => ({ icon, label, go: go(k), color: s.screen === k ? 'oklch(0.078 0.004 250)' : 'oklch(0.404 0.004 250)', weight: s.screen === k ? '700' : '400', bar: 'transparent', bg: s.screen === k ? 'linear-gradient(135deg, oklch(0.06 0.004 250 / 0.2), oklch(0.06 0.004 250 / 0.05))' : 'transparent', bd: s.screen === k ? 'oklch(0.06 0.004 250 / 0.25)' : 'transparent', sh: s.screen === k ? 'inset 0 1px 0 oklch(0.06 0.004 250 / 0.3)' : 'none' }))
     };
     v.tabs.forEach((x, i) => { v['t' + i] = x; });
