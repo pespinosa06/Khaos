@@ -103,13 +103,13 @@
     return token().then(function (t) { opts.token = t; return http(path, opts); });
   }
   function getProfile() {
-    return authed('/rest/v1/profiles?select=username,age&limit=1').then(function (r) { return (r && r[0]) || null; });
+    return authed('/rest/v1/profiles?select=username,age,role&limit=1').then(function (r) { return (r && r[0]) || null; });
   }
   function listPosts(max) {
     return authed('/rest/v1/rpc/community_posts', { method: 'POST', body: { max_rows: max || 100 } });
   }
   function addPost(p) {
-    return authed('/rest/v1/posts', { method: 'POST', body: { channel: p.channel, body: p.body, anon: !!p.anon, circle: !!p.circle }, headers: { Prefer: 'return=minimal' } });
+    return authed('/rest/v1/posts', { method: 'POST', body: { channel: p.channel, body: p.body || '', anon: !!p.anon, circle: !!p.circle, photo_url: p.photo_url || null }, headers: { Prefer: 'return=minimal' } });
   }
   function listCloset() {
     return authed('/rest/v1/closet_items?select=id,name,cat,img,worn&order=created_at.desc&limit=200');
@@ -118,12 +118,73 @@
     return authed('/rest/v1/closet_items', { method: 'POST', body: { id: it.id, name: it.name, cat: it.cat, img: it.img || null, worn: it.worn || 0 }, headers: { Prefer: 'return=minimal' } });
   }
 
+  // ---- archivos (bucket público "media", carpeta = id del usuario) ----
+  function upload(blob, ext) {
+    var uid = userId();
+    if (!uid) return Promise.reject(fail('no_session', 401));
+    var type = blob.type || 'image/jpeg';
+    var path = uid + '/' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8) + '.' + (ext || 'jpg');
+    return token().then(function (t) {
+      return fetch(cfg.supabaseUrl + '/storage/v1/object/media/' + path, {
+        method: 'POST',
+        headers: { apikey: cfg.supabaseKey, Authorization: 'Bearer ' + t, 'Content-Type': type, 'x-upsert': 'false' },
+        body: blob
+      }).catch(function () { throw fail('network', 0, 'Sin conexión'); }).then(function (res) {
+        if (!res.ok) throw fail('upload_' + res.status, res.status, 'No se pudo subir la imagen');
+        return cfg.supabaseUrl + '/storage/v1/object/public/media/' + path;
+      });
+    });
+  }
+  // ---- posts: interacciones ----
+  function setLike(postId, on) {
+    var uid = userId();
+    if (on) return authed('/rest/v1/post_likes', { method: 'POST', body: { post_id: postId, user_id: uid }, headers: { Prefer: 'return=minimal,resolution=ignore-duplicates' } });
+    return authed('/rest/v1/post_likes?post_id=eq.' + postId + '&user_id=eq.' + uid, { method: 'DELETE' });
+  }
+  function setPhrase(postId, phrase, on) {
+    var uid = userId();
+    if (on) return authed('/rest/v1/post_phrases', { method: 'POST', body: { post_id: postId, user_id: uid, phrase: phrase }, headers: { Prefer: 'return=minimal,resolution=ignore-duplicates' } });
+    return authed('/rest/v1/post_phrases?post_id=eq.' + postId + '&user_id=eq.' + uid + '&phrase=eq.' + encodeURIComponent(phrase), { method: 'DELETE' });
+  }
+  function reportPost(postId) {
+    return authed('/rest/v1/post_reports', { method: 'POST', body: { post_id: postId, user_id: userId() }, headers: { Prefer: 'return=minimal,resolution=ignore-duplicates' } });
+  }
+  function deletePost(postId) {
+    return authed('/rest/v1/posts?id=eq.' + postId, { method: 'DELETE' });
+  }
+  // ---- asesores ----
+  var ADV_COLS = 'user_id,name,title,line,bio,specs,years,how,avail,rate_cop,photo_url';
+  function listAdvisors() { return authed('/rest/v1/advisors?select=' + ADV_COLS + '&order=created_at.asc&limit=200'); }
+  function getMyAdvisor() {
+    return authed('/rest/v1/advisors?select=' + ADV_COLS + '&user_id=eq.' + userId() + '&limit=1').then(function (r) { return (r && r[0]) || null; });
+  }
+  function saveAdvisor(a, contact) {
+    var row = { user_id: userId(), name: a.name, title: a.title, line: a.line, bio: a.bio, specs: a.specs, years: a.years, how: a.how, avail: a.avail, rate_cop: a.rate_cop, photo_url: a.photo_url || null, updated_at: new Date().toISOString() };
+    return authed('/rest/v1/advisors?on_conflict=user_id', { method: 'POST', body: row, headers: { Prefer: 'resolution=merge-duplicates,return=minimal' } })
+      .then(function () {
+        if (contact == null) return null;
+        return authed('/rest/v1/advisor_private?on_conflict=user_id', { method: 'POST', body: { user_id: userId(), contact: contact }, headers: { Prefer: 'resolution=merge-duplicates,return=minimal' } });
+      });
+  }
+  function getMyContact() {
+    return authed('/rest/v1/advisor_private?select=contact&user_id=eq.' + userId() + '&limit=1').then(function (r) { return (r && r[0] && r[0].contact) || ''; });
+  }
+  // ---- solicitudes ----
+  function requestSession(advisorId, service, note) {
+    return authed('/rest/v1/session_requests', { method: 'POST', body: { advisor_id: advisorId, client_id: userId(), service: service || '', note: note || '' }, headers: { Prefer: 'return=minimal' } });
+  }
+  function myRequests() { return authed('/rest/v1/rpc/my_requests', { method: 'POST', body: {} }); }
+  function respondRequest(id, accept) { return authed('/rest/v1/rpc/respond_request', { method: 'POST', body: { req: id, accept: !!accept } }); }
+
   window.KhaosStore = {
     enabled: enabled,
     load: load, save: save, clear: clear,
     hasSession: hasSession, userId: userId,
     signUp: signUp, signIn: signIn, signOut: signOut, refresh: refresh,
     getProfile: getProfile, listPosts: listPosts, addPost: addPost,
-    listCloset: listCloset, addClosetItem: addClosetItem
+    listCloset: listCloset, addClosetItem: addClosetItem,
+    upload: upload, setLike: setLike, setPhrase: setPhrase, reportPost: reportPost, deletePost: deletePost,
+    listAdvisors: listAdvisors, getMyAdvisor: getMyAdvisor, saveAdvisor: saveAdvisor, getMyContact: getMyContact,
+    requestSession: requestSession, myRequests: myRequests, respondRequest: respondRequest
   };
 })();

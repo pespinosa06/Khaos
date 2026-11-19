@@ -146,8 +146,8 @@
                 <sc-for list="{{ aAvailChips }}" as="c" hint-placeholder-count="4"><button type="button" aria-pressed="{{ c.on }}" sc-camel-on-click="{{ c.go }}" style="min-height:44px;padding:0 14px;border-radius:22px;font-size:13px;font-weight:700;cursor:pointer;color:{{ c.col }};background:{{ c.bg }};border:1px solid {{ c.bd }}">{{ c.label }}</button></sc-for>
               </div>
             </div>
-            <label style="display:grid;gap:6px;font-size:13px;color:oklch(0.8 0.005 250)">Portafolio o red social (opcional)
-              <input placeholder="@tuusuario o enlace" value="{{ aLink }}" sc-camel-on-change="{{ setALink }}" style="padding:15px 16px;border-radius:12px;background:linear-gradient(160deg, oklch(0.2 0.01 250), oklch(0.09 0.003 250));border:1px solid oklch(1 0 0 / 0.1);color:inherit;font-size:15px;outline:none"></label>
+            <label style="display:grid;gap:6px;font-size:13px;color:oklch(0.8 0.005 250)">Cómo te contactan al aceptar una sesión (se comparte solo con quien aceptes)
+              <input placeholder="WhatsApp, @usuario o enlace" value="{{ aLink }}" sc-camel-on-change="{{ setALink }}" style="padding:15px 16px;border-radius:12px;background:linear-gradient(160deg, oklch(0.2 0.01 250), oklch(0.09 0.003 250));border:1px solid oklch(1 0 0 / 0.1);color:inherit;font-size:15px;outline:none"></label>
             <label style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;color:oklch(0.75 0.005 250);cursor:pointer;min-height:44px">
               <input type="checkbox" checked="{{ aTerms }}" sc-camel-on-change="{{ toggleATerms }}" style="margin-top:2px;accent-color:oklch(0.72 0.061 230)">
               <span>Acepto los términos y las normas de la comunidad. Entiendo que el equipo KHAOS revisará mi perfil antes de publicarlo.</span>
@@ -346,7 +346,7 @@
                 <sc-if value="{{ noRes }}" hint-placeholder-val="{{ false }}">
                   <div style="padding:34px 22px;display:grid;gap:12px;justify-items:center;text-align:center">
                     <div style="font-family:'Stretch Pro','Helvetica Neue',Arial,sans-serif;font-weight:800;font-size:18px">NADA POR AQUÍ</div>
-                    <div style="font-size:13px;line-height:1.5;color:oklch(0.82 0.005 250);max-width:260px">No encontramos asesores con ese filtro. Prueba otra especialidad o busca por otra palabra.</div>
+                    <div style="font-size:13px;line-height:1.5;color:oklch(0.82 0.005 250);max-width:260px">{{ noResText }}</div>
                     <button sc-camel-on-click="{{ clearAdv }}" style="min-height:44px;padding:0 20px;border-radius:22px;font-size:13px;font-weight:800;cursor:pointer;color:#ffffff;background:#e5242d;border:none">Ver todos</button>
                   </div>
                 </sc-if>
@@ -394,6 +394,7 @@
                   </sc-for>
                 </div>
 
+                <sc-if value="{{ P.hasWork }}" hint-placeholder-val="{{ true }}">
                 <div style="padding:30px 22px 0;display:grid;gap:12px">
                   <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:11px;font-weight:800;color:#ff5a62;letter-spacing:0.1em">03</span><span style="font-size:11px;font-weight:800;letter-spacing:0.18em;text-transform:uppercase;color:oklch(0.82 0.01 250)">Portafolio</span></div>
                   <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start">
@@ -405,7 +406,9 @@
                     </sc-for>
                   </div>
                 </div>
+                </sc-if>
 
+                <sc-if value="{{ P.hasFits }}" hint-placeholder-val="{{ true }}">
                 <div style="padding:30px 0 0;display:grid;gap:12px">
                   <div style="padding:0 22px;display:flex;align-items:baseline;gap:10px"><span style="font-size:11px;font-weight:800;color:#ff5a62;letter-spacing:0.1em">04</span><span style="font-size:11px;font-weight:800;letter-spacing:0.18em;text-transform:uppercase;color:oklch(0.82 0.01 250)">Outfits y propuestas</span><span style="font-size:11px;color:oklch(0.7 0.01 250)">desliza →</span></div>
                   <div class="ad-row" style="display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 22px 6px;scrollbar-width:none">
@@ -417,6 +420,7 @@
                     </sc-for>
                   </div>
                 </div>
+                </sc-if>
 
                 <sc-if value="{{ P.hasBA }}" hint-placeholder-val="{{ false }}">
                   <div style="padding:30px 22px 0;display:grid;gap:12px">
@@ -433,19 +437,23 @@
                   </div>
                 </sc-if>
 
+                <sc-if value="{{ P.hasExp }}" hint-placeholder-val="{{ true }}">
                 <div style="padding:30px 22px 0;display:grid;gap:12px">
                   <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:11px;font-weight:800;color:#ff5a62;letter-spacing:0.1em">06</span><span style="font-size:11px;font-weight:800;letter-spacing:0.18em;text-transform:uppercase;color:oklch(0.82 0.01 250)">Experiencia</span></div>
                   <sc-for list="{{ P.exp }}" as="e" hint-placeholder-count="3">
                     <div style="display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;padding:12px 0;border-top:1px solid oklch(1 0 0 / 0.14)"><span style="font-size:12px;font-weight:700;color:#ff5a62">{{ e.y }}</span><span style="font-size:13.5px;line-height:1.4">{{ e.t }}</span></div>
                   </sc-for>
                 </div>
+                </sc-if>
 
+                <sc-if value="{{ P.hasRev }}" hint-placeholder-val="{{ true }}">
                 <div style="padding:30px 22px 0;display:grid;gap:12px">
                   <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:11px;font-weight:800;color:#ff5a62;letter-spacing:0.1em">07</span><span style="font-size:11px;font-weight:800;letter-spacing:0.18em;text-transform:uppercase;color:oklch(0.82 0.01 250)">Opiniones</span></div>
                   <sc-for list="{{ P.rev }}" as="r" hint-placeholder-count="2">
                     <div style="display:grid;gap:6px;padding:14px 16px;border-radius:20px;background:oklch(1 0 0 / 0.06);border:1px solid oklch(1 0 0 / 0.12)"><div style="display:flex;justify-content:space-between;font-size:12px"><b>{{ r.by }}</b><span style="color:#ff5a62;letter-spacing:0.1em">{{ r.stars }}</span></div><div style="font-size:13.5px;line-height:1.45;color:oklch(0.9 0.005 250)">{{ r.t }}</div></div>
                   </sc-for>
                 </div>
+                </sc-if>
 
                 <div style="position:sticky;bottom:0;z-index:6;margin-top:24px;padding:16px 22px 6px;display:grid;gap:10px;background:linear-gradient(0deg,#0b0b0d 72%,transparent)">
                   <sc-if value="{{ P.sent }}" hint-placeholder-val="{{ false }}"><div style="padding:12px 14px;border-radius:16px;font-size:12.5px;line-height:1.45;color:oklch(0.12 0 0);background:oklch(0.9 0.05 235);animation:khIn .4s ease both">{{ P.sentText }}</div></sc-if>
@@ -600,10 +608,10 @@
                   <sc-if value="{{ p.hasPhoto }}" hint-placeholder-val="{{ false }}"><div style="height:230px;border-radius:18px;background-image:{{ p.photoBg }};background-size:cover;background-position:center;border:1px solid oklch(1 0 0 / 0.14);margin-top:4px"></div></sc-if>
                   <div style="display:flex;justify-content:space-between;max-width:240px;margin-top:4px;color:oklch(0.6 0.01 250);font-size:12px">
                     <button sc-camel-on-click="{{ p.doReply }}" style="background:none;border:none;color:inherit;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;min-height:32px;padding:0"><svg width="15" height="15" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 5h16v11H9l-5 4z"></path></svg> {{ p.repliesL }}</button>
-                    <button sc-camel-on-click="{{ p.doRt }}" style="background:none;border:none;color:{{ p.rtColor }};font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;min-height:32px;padding:0"><svg width="15" height="15" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 7h11v6"></path><path d="M15 10l3 3 3-3"></path><path d="M17 17H6v-6"></path><path d="M9 14l-3-3-3 3"></path></svg> {{ p.rtsL }}</button>
-                    <button sc-camel-on-click="{{ p.togglePick }}" style="background:none;border:none;color:oklch(0.85 0.07 235);font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;min-height:44px;padding:0 4px;white-space:nowrap">Dejar una palabra</button>
+                    
+                    <button sc-camel-on-click="{{ p.togglePick }}" style="background:none;border:none;color:oklch(0.85 0.07 235);font-size:12px;font-weight:700;cursor:pointer;display:{{ p.pickShow }};align-items:center;gap:5px;min-height:44px;padding:0 4px;white-space:nowrap">Dejar una palabra</button>
                   <button sc-camel-on-click="{{ p.report }}" style="background:none;border:none;color:{{ p.repCol }};font-size:12px;font-weight:700;cursor:pointer;min-height:44px;padding:0 4px;white-space:nowrap;display:{{ p.repShow }}">{{ p.repLabel }}</button>
-                    <button style="background:none;border:none;color:inherit;cursor:pointer;display:flex;align-items:center;min-height:32px;padding:0"><svg width="15" height="15" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v12"></path><path d="M7 8l5-5 5 5"></path><path d="M5 14v6h14v-6"></path></svg></button>
+                    <button sc-camel-on-click="{{ p.del }}" style="background:none;border:none;color:{{ p.delCol }};font-size:12px;font-weight:700;cursor:pointer;min-height:44px;padding:0 4px;white-space:nowrap;display:{{ p.delShow }}">{{ p.delLabel }}</button>
                   </div>
                   <sc-if value="{{ p.hasPhrases }}" hint-placeholder-val="{{ false }}">
                     <div style="display:grid;gap:6px;margin-top:4px">
@@ -617,6 +625,7 @@
                 </div>
               </div>
             </sc-for>
+            <sc-if value="{{ noPosts }}" hint-placeholder-val="{{ false }}"><div style="padding:36px 20px;text-align:center;font-size:13px;line-height:1.5;color:oklch(0.7 0.01 250)">Aún no hay posts aquí. Sé la primera persona en escribir algo.</div></sc-if>
             </sc-if>
           </div>
           <sc-if value="{{ rulesNote }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:10px;padding:8px 8px 8px 16px;margin:6px 12px 8px;border-radius:22px;animation:khIn .4s ease both;background:linear-gradient(135deg, oklch(1 0 0 / 0.18), oklch(1 0 0 / 0.04));border:1px solid oklch(1 0 0 / 0.25);backdrop-filter:blur(14px);box-shadow:inset 0 1px 0 oklch(1 0 0 / 0.3)"><div style="flex:1;font-size:11px;line-height:1.4;color:oklch(0.88 0.005 250)"><b style="color:oklch(0.98 0 0)">Aquí no se permiten agresiones.</b> Palabras positivas o críticas constructivas. 3 reportes eliminan una cuenta.</div><button sc-camel-on-click="{{ closeRules }}" aria-label="Cerrar aviso" style="width:44px;height:44px;flex:none;border-radius:50%;cursor:pointer;color:oklch(0.98 0 0);background:oklch(1 0 0 / 0.1);border:1px solid oklch(1 0 0 / 0.2);font-size:14px">✕</button></div></sc-if>
@@ -863,79 +872,6 @@
         </div>
       </sc-if>
 
-      <sc-if value="{{ isPagos }}" hint-placeholder-val="{{ false }}">
-        <div style="animation:khIn .5s cubic-bezier(.2,.8,.2,1) both;flex:1;overflow-y:auto;display:grid;grid-template-columns:minmax(0,1fr);grid-auto-rows:max-content;align-content:start;gap:16px;padding:12px 22px 24px;background:linear-gradient(180deg, #000 0%, #000 30%, oklch(0.14 0 0) 70%, oklch(0.26 0 0) 100%);background-attachment:local;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-            
-            <div style="font-family:'Manrope','Helvetica Neue',Arial,sans-serif;font-weight:500;letter-spacing:-0.02em;font-size:15px;white-space:nowrap"><br></div>
-          </div>
-          <sc-if value="{{ paid }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;padding:40px 20px;border-radius:24px;background:linear-gradient(135deg, oklch(1 0 0 / 0.2), oklch(1 0 0 / 0.05));border:1px solid oklch(1 0 0 / 0.25);backdrop-filter:blur(14px);box-shadow:inset 0 1px 0 oklch(1 0 0 / 0.3);animation:khIn .5s ease both">
-              <div style="width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;animation:khPop .7s cubic-bezier(.2,.8,.2,1) both,khRing 1.4s ease-out .5s 2;background:linear-gradient(135deg, oklch(1 0 0 / 0.2), oklch(1 0 0 / 0.05));border:1px solid oklch(1 0 0 / 0.25);backdrop-filter:blur(14px);box-shadow:inset 0 1px 0 oklch(1 0 0 / 0.3)">✓</div>
-              <div style="font-family:'Manrope','Helvetica Neue',Arial,sans-serif;font-weight:500;letter-spacing:-0.02em;font-size:20px;">Ya eres KHAOS+</div>
-              <div style="font-size:13px;line-height:1.5;color:oklch(0.8 0.005 250)">{{ paidText }}</div>
-              <button sc-camel-on-click="{{ goComunidad }}" style="min-height:48px;padding:0 26px;border-radius:24px;font-size:13px;font-weight:800;cursor:pointer;color:oklch(0.98 0 0);background:linear-gradient(135deg, oklch(1 0 0 / 0.2), oklch(1 0 0 / 0.05));border:1px solid oklch(1 0 0 / 0.25);backdrop-filter:blur(14px);box-shadow:inset 0 1px 0 oklch(1 0 0 / 0.3);transition:background .25s, box-shadow .25s, border-color .25s" style-hover="background:linear-gradient(135deg, oklch(1 0 0 / 0.3), oklch(1 0 0 / 0.1));border-color:oklch(1 0 0 / 0.5)">Entrar a los canales</button>
-              <button sc-camel-on-click="{{ resetPay }}" style="min-height:40px;background:none;border:none;color:oklch(0.65 0.01 250);font-size:12px;cursor:pointer">Cancelar membresía</button>
-            </div>
-          </sc-if>
-          <sc-if value="{{ notPaid }}" hint-placeholder-val="{{ true }}">
-          <sc-if value="{{ planStep }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px">
-            <div style="font-size:20px;font-weight:800;color:oklch(0.98 0 0)">Elige tu plan</div>
-            <sc-for list="{{ plans }}" as="p" hint-placeholder-count="3">
-              <div sc-camel-on-mouse-enter="{{ p.enter }}" sc-camel-on-mouse-move="{{ tilt }}" sc-camel-on-mouse-leave="{{ p.leave }}" style="animation:khIn .6s cubic-bezier(.2,.8,.2,1) {{ p.delay }} both;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:14px;padding:20px;border-radius:24px;transition:border-color .3s, transform .35s cubic-bezier(.2,.8,.2,1);background:linear-gradient(135deg, oklch(1 0 0 / 0.14), oklch(1 0 0 / 0.04));border:1px solid oklch(1 0 0 / 0.22);backdrop-filter:blur(14px);box-shadow:0 14px 34px oklch(0 0 0 / 0.45)">
-                <div style="position:absolute;inset:0;pointer-events:none;opacity:var(--kh-glow,0);transition:opacity .5s ease;background:radial-gradient(ellipse 80% 80% at var(--kh-x,50%) var(--kh-y,45%), oklch(0.62 0.05 245 / 0.55), oklch(0.45 0.04 250 / 0.25) 45%, transparent 75%)"></div>
-                <div style="position:relative;display:flex;justify-content:space-between;align-items:center;gap:10px">
-                  <span style="padding:5px 12px;border-radius:12px;font-size:12px;font-weight:800;color:oklch(0.12 0 0);background:{{ p.col }}">{{ p.name }}</span>
-                  <span style="font-size:11px;font-weight:700;color:{{ p.col }};opacity:{{ p.tagOp }}">{{ p.tag }}</span>
-                </div>
-                <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap"><span style="font-size:30px;font-weight:800;letter-spacing:-0.02em">{{ p.price }}</span><span style="font-size:13px;color:oklch(0.78 0.01 250)">{{ p.per }}</span></div>
-                <div style="max-height:{{ p.perkH }};opacity:{{ p.perkO }};overflow:hidden;transition:max-height .4s cubic-bezier(.2,.8,.2,1), opacity .3s;display:grid;gap:14px">
-                  <div style="height:1px;background:oklch(1 0 0 / 0.14)"></div>
-                  <div style="white-space:pre-line;font-size:13px;line-height:1.75;color:oklch(0.92 0.005 250)">{{ p.perkList }}</div>
-                </div>
-                <button sc-camel-on-click="{{ p.go }}" style="min-height:50px;border-radius:25px;font-size:14px;font-weight:800;cursor:pointer;color:oklch(0.98 0 0);background:linear-gradient(135deg, oklch(1 0 0 / 0.2), oklch(1 0 0 / 0.05));border:1px solid oklch(1 0 0 / 0.3);backdrop-filter:blur(14px);box-shadow:inset 0 1px 0 oklch(1 0 0 / 0.3);transition:transform .3s cubic-bezier(.2,.8,.2,1), background .3s, box-shadow .3s, border-color .3s, letter-spacing .3s" style-hover="transform:translateY(-3px) scale(1.03);letter-spacing:0.04em;background:linear-gradient(135deg, oklch(1 0 0 / 0.34), oklch(1 0 0 / 0.1));border-color:oklch(1 0 0 / 0.55);box-shadow:inset 0 1px 0 oklch(1 0 0 / 0.45), 0 12px 26px oklch(0 0 0 / 0.5), 0 0 22px oklch(0.7 0.06 245 / 0.35)" style-active="transform:translateY(0) scale(.95);box-shadow:inset 0 2px 8px oklch(0 0 0 / 0.4)">{{ p.cta }}</button>
-              </div>
-            </sc-for>
-          </div></sc-if>
-                    
-          <sc-if value="{{ payStep }}" hint-placeholder-val="{{ false }}"><div style="display:grid;gap:22px;animation:khIn .4s cubic-bezier(.2,.8,.2,1) both">
-            <div style="display:flex;align-items:center;gap:12px"><div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px"><div style="font-size:24px;font-weight:800;letter-spacing:-0.01em">Configura tu plan</div><button sc-camel-on-click="{{ backPlans }}" style="background:none;border:none;padding:0;min-height:28px;font-size:13px;color:oklch(0.8 0.01 250);text-decoration:underline;cursor:pointer" style-hover="color:oklch(0.98 0 0)">Cambiar de plan</button></div></div><div style="display:grid;gap:12px;padding:20px;border-radius:22px;background:linear-gradient(135deg, oklch(1 0 0 / 0.2), oklch(1 0 0 / 0.05));border:1px solid oklch(1 0 0 / 0.25);backdrop-filter:blur(14px);box-shadow:inset 0 1px 0 oklch(1 0 0 / 0.3), 0 10px 28px oklch(0 0 0 / 0.35)">
-              <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:start">
-                <div style="display:grid;gap:3px"><span style="font-size:18px;font-weight:800">{{ sumPlan }}</span><span style="font-size:14px;color:oklch(0.72 0.01 250)">{{ sumShort }}</span></div>
-                <div style="display:grid;gap:2px;text-align:right"><span style="font-size:18px;font-weight:800;white-space:nowrap">{{ sumPrice }} COP</span><span style="font-size:14px;color:oklch(0.72 0.01 250)">{{ sumPer }}</span></div>
-              </div>
-              
-            </div>
-            
-            <div style="display:grid;gap:10px">
-              <div style="font-size:18px;font-weight:800">Elige cómo pagar</div>
-              <sc-for list="{{ payOpts }}" as="o" hint-placeholder-count="3">
-                <button sc-camel-on-click="{{ o.go }}" style="display:flex;align-items:center;gap:14px;min-height:62px;padding:0 18px;border-radius:18px;text-align:left;cursor:pointer;color:oklch(0.98 0 0);background:{{ o.bg }};border:1px solid {{ o.bd }};transition:background .25s, box-shadow .25s, border-color .25s" style-hover="background:linear-gradient(135deg, oklch(1 0 0 / 0.3), oklch(1 0 0 / 0.1));border-color:oklch(1 0 0 / 0.5)">
-                  <span style="width:22px;height:22px;flex:none;border-radius:50%;border:2px solid {{ o.ring }};display:flex;align-items:center;justify-content:center"><span style="width:10px;height:10px;border-radius:50%;background:oklch(0.98 0 0);opacity:{{ o.dot }}"></span></span>
-                  <span style="flex:1;font-size:15px;font-weight:700">{{ o.name }}</span>
-                  <span style="display:flex;gap:6px;align-items:center">
-                    <span style="width:{{ o.w1 }}px;height:24px;background-image:{{ o.i1 }};background-position:center;background-size:contain;background-repeat:no-repeat"></span>
-                    <span style="width:{{ o.w2 }}px;height:24px;background-image:{{ o.i2 }};background-position:center;background-size:contain;background-repeat:no-repeat"></span>
-                  </span>
-                </button>
-              </sc-for>
-            </div>
-            <sc-if value="{{ isCardPay }}" hint-placeholder-val="{{ true }}"><div style="display:grid;gap:10px">
-              <div style="border-radius:18px;border:1px solid oklch(1 0 0 / 0.18);background:oklch(1 0 0 / 0.04);overflow:hidden">
-                <div style="border-bottom:1px solid oklch(1 0 0 / 0.12)"><input value="{{ cNum }}" sc-camel-on-input="{{ onNum }}" placeholder="Número de tarjeta" inputmode="numeric" style="width:100%;min-height:56px;padding:0 16px;background:none;border:none;outline:none;font-size:16px;color:oklch(0.98 0 0);"></div>
-                <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><div style="border-right:1px solid oklch(1 0 0 / 0.12)"><input value="{{ cExp }}" sc-camel-on-input="{{ onExp }}" placeholder="MM/AA" inputmode="numeric" style="width:100%;min-height:56px;padding:0 16px;background:none;border:none;outline:none;font-size:16px;color:oklch(0.98 0 0);"></div><input value="{{ cCvv }}" sc-camel-on-input="{{ onCvv }}" placeholder="CVV" inputmode="numeric" style="width:100%;min-height:56px;padding:0 16px;background:none;border:none;outline:none;font-size:16px;color:oklch(0.98 0 0);"></div>
-              </div>
-              <div style="font-size:12px;line-height:1.4;color:oklch(0.8 0.1 25)">{{ cardError }}</div>
-            </div></sc-if>
-            <div style="display:grid;gap:12px">
-              <button sc-camel-on-click="{{ payNow }}" style="min-height:58px;border-radius:29px;font-size:15px;font-weight:800;cursor:pointer;color:oklch(0.98 0 0);background:linear-gradient(135deg, oklch(1 0 0 / 0.2), oklch(1 0 0 / 0.05));border:1px solid oklch(1 0 0 / 0.3);backdrop-filter:blur(14px);box-shadow:inset 0 1px 0 oklch(1 0 0 / 0.3);transition:background .25s, box-shadow .25s, border-color .25s" style-hover="background:linear-gradient(135deg, oklch(1 0 0 / 0.3), oklch(1 0 0 / 0.1));border-color:oklch(1 0 0 / 0.5)" style-active="transform:scale(.98)">{{ payLabel }}</button>
-              <div style="text-align:center;font-size:11px;line-height:1.5;color:oklch(0.65 0.01 250)"><span style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:oklch(0.92 0.005 250)"><span style="width:8px;height:8px;border-radius:50%;background:oklch(0.8 0.17 150)"></span>Pago 100% seguro</span><br><br>Tus datos van cifrados y KHAOS nunca guarda tu CVV. Al continuar aceptas los términos de KHAOS+.</div>
-            </div>
-          </div></sc-if>
-          </sc-if>
-        </div>
-      </sc-if>
-
       <sc-if value="{{ isAyuda }}" hint-placeholder-val="{{ false }}">
         <div style="animation:khIn .5s cubic-bezier(.2,.8,.2,1) both;flex:1;overflow-y:auto;display:grid;grid-template-columns:minmax(0,1fr);grid-auto-rows:max-content;align-content:start;gap:14px;padding:12px 22px 24px">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
@@ -1057,6 +993,24 @@
             <div style="font-size:20px;font-weight:800">@{{ userName }}</div>
             <div style="padding:6px 14px;border-radius:20px;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;background:oklch(0.72 0.061 230 / 0.15);border:1px solid oklch(0.72 0.061 230 / 0.45);color:oklch(0.9 0.08 230)">{{ profileIdentity }}</div>
           </div>
+          <sc-if value="{{ hasReqs }}" hint-placeholder-val="{{ false }}">
+            <section aria-label="Solicitudes de sesión" style="display:grid;gap:12px;padding:18px 16px;border-radius:22px;background:linear-gradient(160deg, oklch(0.21 0.02 250), oklch(0.09 0.005 250));border:1px solid oklch(1 0 0 / 0.14)">
+              <h3 style="margin:0;font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:0.02em">{{ reqTitle }}</h3>
+              <sc-for list="{{ reqRows }}" as="r" hint-placeholder-count="2">
+                <div style="display:grid;gap:8px;padding:12px 14px;border-radius:16px;background:oklch(1 0 0 / 0.05);border:1px solid oklch(1 0 0 / 0.12)">
+                  <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline"><span style="font-size:14px;font-weight:800">{{ r.who }}</span><span style="font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:{{ r.stCol }}">{{ r.status }}</span></div>
+                  <div style="font-size:12.5px;color:oklch(0.82 0.01 250)">{{ r.service }} · {{ r.when }}</div>
+                  <sc-if value="{{ r.hasContact }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;padding:10px 12px;border-radius:12px;background:oklch(0.72 0.061 230 / 0.15);border:1px solid oklch(0.72 0.061 230 / 0.5)">Contacto: <b>{{ r.contact }}</b></div></sc-if>
+                  <sc-if value="{{ r.canAnswer }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;gap:8px">
+                      <button type="button" sc-camel-on-click="{{ r.accept }}" style="flex:1;min-height:44px;border-radius:22px;font-size:13px;font-weight:800;cursor:pointer;color:#ffffff;background:#e5242d;border:1px solid oklch(1 0 0 / 0.25)">Aceptar</button>
+                      <button type="button" sc-camel-on-click="{{ r.decline }}" style="flex:1;min-height:44px;border-radius:22px;font-size:13px;font-weight:700;cursor:pointer;color:inherit;background:oklch(1 0 0 / 0.08);border:1px solid oklch(1 0 0 / 0.25)">Rechazar</button>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </section>
+          </sc-if>
           <sc-if value="{{ isAdvisor }}" hint-placeholder-val="{{ false }}">
             <section aria-label="Editar mi perfil de asesor" style="display:grid;gap:14px;padding:18px 16px;border-radius:22px;background:linear-gradient(160deg, oklch(0.21 0.02 250), oklch(0.09 0.005 250));border:1px solid oklch(0.72 0.061 230 / 0.45)">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
@@ -1116,8 +1070,8 @@
               </div>
               <label style="display:grid;gap:6px;font-size:13px;color:oklch(0.8 0.005 250)">Tarifa por sesión (COP)
                 <input inputmode="numeric" placeholder="Ej. 60000" value="{{ aRate }}" sc-camel-on-change="{{ setARate }}" style="padding:14px 16px;border-radius:12px;background:linear-gradient(160deg, oklch(0.2 0.01 250), oklch(0.09 0.003 250));border:1px solid oklch(1 0 0 / 0.1);color:inherit;font-size:15px;outline:none"></label>
-              <label style="display:grid;gap:6px;font-size:13px;color:oklch(0.8 0.005 250)">Portafolio o red social
-                <input placeholder="@tuusuario o enlace" value="{{ aLink }}" sc-camel-on-change="{{ setALink }}" style="padding:14px 16px;border-radius:12px;background:linear-gradient(160deg, oklch(0.2 0.01 250), oklch(0.09 0.003 250));border:1px solid oklch(1 0 0 / 0.1);color:inherit;font-size:15px;outline:none"></label>
+              <label style="display:grid;gap:6px;font-size:13px;color:oklch(0.8 0.005 250)">Cómo te contactan al aceptar una sesión
+                <input placeholder="WhatsApp, @usuario o enlace" value="{{ aLink }}" sc-camel-on-change="{{ setALink }}" style="padding:14px 16px;border-radius:12px;background:linear-gradient(160deg, oklch(0.2 0.01 250), oklch(0.09 0.003 250));border:1px solid oklch(1 0 0 / 0.1);color:inherit;font-size:15px;outline:none"></label>
 
               <sc-if value="{{ hasAErr }}" hint-placeholder-val="{{ false }}">
                 <div role="alert" style="padding:12px 14px;border-radius:10px;background:oklch(0.3 0.14 20 / 0.35);border:1px solid oklch(0.5 0.17 20 / 0.6);font-size:13px;color:oklch(0.9 0.05 20)">{{ aErr }}</div>

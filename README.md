@@ -20,33 +20,44 @@ comunidad por canales e historias.
   desarrollo (`?dev`, y `?dev&screen=home` para abrir una pantalla).
 - Metadatos para móvil: `theme-color`, ícono, manifest e Open Graph.
 
-## Supabase (cuentas, posts y closet)
+## Supabase (cuentas, asesores, posts y closet)
 
 El proyecto de Supabase "Khaos" ya está conectado (`config.js`, `store.js`):
 
 - **Cuentas reales:** registro e inicio de sesión con correo y contraseña.
   La edad (18–25) y el nombre de usuario se validan también en la base de datos.
-- **Posts compartidos:** lo que publiques en la comunidad lo ven los demás
-  usuarios. Los posts anónimos nunca exponen al autor (se leen por la
-  función `community_posts()`).
+- **Asesores reales:** cualquiera puede crear una cuenta de asesor (rol
+  `advisor`); su perfil (foto, especialidades, bio, tarifa) aparece de inmediato
+  en la lista de Asesores. Sin revisión previa del equipo (ver "Pendiente").
+- **Solicitudes de sesión:** el cliente pide una sesión; el asesor la acepta o
+  rechaza desde su Perfil. Al aceptar, el cliente ve el contacto que el asesor
+  dejó (guardado en una tabla privada, nunca en la lista pública).
+- **Posts compartidos:** fotos (Storage, bucket público `media`), "Dejar una
+  palabra" (frases positivas, solo las ve el autor), reportes y borrado de tus
+  propios posts. Con 3 reportes de personas distintas el post deja de mostrarse.
+  No hay likes públicos, por diseño. Los anónimos nunca exponen al autor.
 - **My closet en la nube:** las prendas que agregues se guardan en tu cuenta.
+- **Sin pagos:** se quitaron la membresía y los planes.
 - **Seguridad:** RLS activo en todas las tablas; cada usuario solo ve y
   modifica lo suyo. La clave de `config.js` es la "publishable", pública por
   diseño. Nunca pongas la clave `secret` / `service_role` en el repo.
 
-Tablas: `profiles`, `posts`, `closet_items` (esquema en las migraciones del
-proyecto Supabase). Sin conexión o sin sesión, la app guarda lo local en el
-dispositivo.
+Tablas: `profiles`, `advisors`, `advisor_private`, `session_requests`, `posts`,
+`post_phrases`, `post_reports`, `closet_items` (esquema en las migraciones del
+proyecto Supabase). Sin conexión a Supabase (config vacío) la app corre en modo
+demo local con asesores y posts de ejemplo.
 
 Para entrar directo sin confirmar el correo, desactiva *Confirm email* en
 Supabase → Authentication → Sign In / Providers → Email. Si queda activo, la
 app avisa al usuario que revise su correo.
 
 Notas: la cédula del registro solo se valida en el dispositivo; no se envía ni se
-guarda en Supabase. Los posts con foto y la cuenta de asesor siguen siendo locales.
+guarda en Supabase.
 
-Pendiente: likes y respuestas compartidas, fotos del closet en Storage
-(hoy van dentro de la tabla), moderación de posts y pagos reales.
+Pendiente: reseñas y valoraciones reales de asesores, chat dentro de la app,
+revisión/verificación de asesores por el equipo, fotos del closet en Storage
+(hoy van dentro de la tabla) y activar la protección contra contraseñas
+filtradas en Supabase → Authentication.
 
 ## Estructura
 

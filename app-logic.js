@@ -183,7 +183,8 @@ const TONES = {
   dark2: { bg: '#1a1c21', solid: '#1a1c21', fg: '#ffffff', cover: false, shade: 'linear-gradient(180deg, transparent 50%, #1a1c21 84%)' }
 };
 // Perfiles de demostración: fotos y textos de ejemplo, reemplazables por los reales de cada asesor.
-const ADV = [
+const freshPosts = () => { const p = JSON.parse(JSON.stringify(SEED)); if (window.KhaosStore && KhaosStore.enabled) Object.keys(p).forEach(k => { p[k] = []; }); return p; };
+const ADV_SEED = [
   { id: 'laura', name: 'Laura M.', ini: 'LM', role: 'Estilista de imagen', st: 'En línea', tags: ['imagen', 'identidad', 'estilismo'], line: 'Tu imagen, editada.', bio: 'Trabajo contigo desde lo que ya tienes en el clóset. Construimos un estilo reconocible, cómodo y tuyo, sin copiar a nadie.', ph: 'assets/hero-portrait.png', pos: '50% 18%', tone: 'photo', rate: 4.9, nrev: 128, resp: 'Menos de 2 h',
     work: [['assets/closet-hoodie2.png', 'Capas oversized'], ['assets/closet-jacket.png', 'Cuero y denim'], ['assets/home-outfit.png', 'Negro con rojo'], ['assets/closet-jeans2.png', 'Base de clóset']],
     fits: [['Oversized en capas', 'assets/closet-hoodie2.png', 'Hoodie · Jeans · Tenis'], ['Negro con un toque rojo', 'assets/home-outfit.png', 'Chaqueta · Jeans · Botas'], ['Casual sin esfuerzo', 'assets/closet-camiseta.png', 'Camiseta · Short · Gorro']],
@@ -227,6 +228,21 @@ const ADV = [
     svc: [['Reporte de tendencias para ti', 'Qué sí y qué no según tu estilo · 40 min', 45], ['Renueva tu look', 'Actualiza 3 prendas clave · 30 min', 35]],
     rev: [['Anto', 'Me explicó qué tendencias valen la pena. Cero humo.', 5], ['Rafa', 'Muy buen ojo para lo que viene.', 4]] }
 ];
+ADV_SEED.forEach(a => { a.svc = a.svc.map(v => [v[0], v[1], v[2] * 1000]); });
+const ADV = [];
+if (!window.KhaosStore || !KhaosStore.enabled) ADV.push(...ADV_SEED);
+const SPEC_MAP = { 'Imagen y estilismo': ['imagen', 'identidad'], 'Moda urbana': ['urbana'], 'Colorimetría': ['color'], 'Personal shopper': ['shopper'], 'Tendencias': ['tendencias'], 'Armado de outfits': ['estilismo'], 'Revisión de clóset': ['vestuario'] };
+const advFromRow = (r) => {
+  const tags = [...new Set((r.specs || []).flatMap(x => SPEC_MAP[x] || []))];
+  const nm = (r.name || '').trim();
+  const bio = r.bio || '';
+  return { id: r.user_id, name: nm, ini: nm.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase(), role: r.title || (r.specs || [])[0] || 'Asesor/a', st: 'Disponible',
+    tags: tags.length ? tags : ['imagen'], line: r.line || (bio.length > 90 ? bio.slice(0, 90) + '…' : bio), bio, ph: r.photo_url || '', pos: '50% 20%', tone: r.photo_url ? 'photo' : 'dark',
+    rate: 0, nrev: 0, resp: 'Te escribe al aceptar', work: [], fits: [], ba: null,
+    exp: r.years ? [['Experiencia', r.years]] : [],
+    svc: [['Sesión de asesoría', ((r.how || []).join(' · ') + ((r.avail || []).length ? ' · ' + r.avail.join(', ') : '')) || 'A convenir', r.rate_cop || 0]], rev: [] };
+};
+
 class Component extends DCLogic {
   splashRef = React.createRef();
   splashGyro = (e) => { e.stopPropagation(); this.askMotion(); };
@@ -376,7 +392,7 @@ class Component extends DCLogic {
   advTop = () => { const e = this.advRef.current; if (e) e.scrollTop = 0; };
   advVals = (s) => {
     const norm = (x) => x.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-    const money = (n) => '$' + n + '.000';
+    const money = (n) => n ? '$' + n.toLocaleString('es-CO') : 'A convenir';
     const byId = (id) => ADV.find(x => x.id === id);
     const STR = "'Stretch Pro','Helvetica Neue',Arial,sans-serif";
     const A = s.advView && s.advView !== 'cmp' ? byId(s.advView) : null;
@@ -388,7 +404,7 @@ class Component extends DCLogic {
     const open = (id) => () => { this.setState(st => ({ advView: id, advSvc: null, advBA: 50, advPrev: null, advPref: bump(st.advPref, byId(id).tags, 1) })); top(); };
     const favTog = (id) => () => this.setState(st => { const on = !st.advFav[id]; return { advFav: { ...st.advFav, [id]: on }, advPref: on ? bump(st.advPref, byId(id).tags, 2) : st.advPref }; });
     const cmpTog = (id) => () => this.setState(st => ({ advCmp: st.advCmp.includes(id) ? st.advCmp.filter(x => x !== id) : [...st.advCmp, id].slice(-2) }));
-    const request = (i, svc) => () => this.setState({ advReq: i, advReqSvc: svc == null ? null : svc });
+    const request = (i, svc) => () => this.requestSession(i, svc);
     const glassBtn = (a, T, right, on, onBg, onCol) => ({ position: 'absolute', top: '6px', right: right + 'px', width: '44px', height: '44px', borderRadius: '50%', border: 'none', cursor: 'pointer', fontSize: '17px', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, backdropFilter: 'blur(8px)', background: on ? onBg : (T.fg === '#ffffff' ? 'oklch(0 0 0 / 0.4)' : 'oklch(1 0 0 / 0.6)'), color: on ? onCol : T.fg });
 
     // ---- Lista / exploración ----
@@ -402,11 +418,11 @@ class Component extends DCLogic {
       const T = TONES[a.tone], fav = !!s.advFav[a.id], cmp = s.advCmp.includes(a.id), dark = T.fg === '#ffffff';
       const rad = big ? '34px 34px 34px 90px' : ['22px', '22px 22px 22px 60px', '60px 22px 22px 22px'][i % 3];
       return {
-        id: a.id, label: 'Ver perfil de ' + a.name, name: a.name.toUpperCase(), kicker: SPEC[a.tags[0]], role: a.role, line: a.line, rate: a.rate.toFixed(1), status: a.st,
+        id: a.id, label: 'Ver perfil de ' + a.name, name: a.name.toUpperCase(), kicker: SPEC[a.tags[0]], role: a.role, line: a.line, rate: a.rate ? a.rate.toFixed(1) : 'Nuevo', status: a.st,
         starCol: T.fg === '#ffffff' && a.tone !== 'red' ? '#ff5a62' : (a.tone === 'red' ? '#ffffff' : '#c4161e'),
         hasPal: !!a.pal, pal: (a.pal || []).map(c => ({ style: { width: '13px', height: '13px', borderRadius: '50%', background: c, border: '1px solid oklch(0.5 0 0 / 0.5)' } })),
         cardStyle: { position: 'relative', breakInside: 'avoid', marginBottom: big ? '0' : '12px', aspectRatio: ar, borderRadius: rad, overflow: 'hidden', background: T.bg, color: T.fg, border: '1px solid oklch(1 0 0 / 0.14)', boxShadow: '0 14px 34px oklch(0 0 0 / 0.35)', animation: 'khIn .6s cubic-bezier(.2,.8,.2,1) both', animationDelay: (i * 80) + 'ms' },
-        phStyle: { position: 'absolute', inset: 0, backgroundImage: 'url(' + rs(a.ph) + ')', backgroundSize: T.cover ? 'cover' : (big ? 'auto 70%' : 'auto 62%'), backgroundPosition: a.pos, backgroundRepeat: 'no-repeat', transition: 'transform .9s cubic-bezier(.2,.8,.2,1)' },
+        phStyle: { position: 'absolute', inset: 0, backgroundImage: a.ph ? 'url(' + rs(a.ph) + ')' : 'none', backgroundSize: T.cover ? 'cover' : (big ? 'auto 70%' : 'auto 62%'), backgroundPosition: a.pos, backgroundRepeat: 'no-repeat', transition: 'transform .9s cubic-bezier(.2,.8,.2,1)' },
         shadeStyle: { position: 'absolute', inset: 0, background: T.shade, pointerEvents: 'none' },
         nameStyle: { fontFamily: STR, fontWeight: 800, fontSize: big ? '28px' : '14px', lineHeight: 1.02, letterSpacing: '-0.01em' },
         open: open(a.id), favGo: favTog(a.id), cmpGo: cmpTog(a.id),
@@ -433,7 +449,10 @@ class Component extends DCLogic {
     let P = { name: '', role: '', tags: [], svc: [], work: [], fits: [], exp: [], rev: [], palette: [] };
     let pv = { open: false, imgStyle: {}, boxStyle: {} };
     if (A) {
-      const T = TONES[A.tone], idx = ADV.indexOf(A), fav = !!s.advFav[A.id], cmp = s.advCmp.includes(A.id), sent = s.advReq === idx;
+      const T = TONES[A.tone], idx = A.id, fav = !!s.advFav[A.id], cmp = s.advCmp.includes(A.id);
+      const myReq = (s.requests || []).find(r => !r.as_advisor && r.advisor_id === A.id && r.status !== 'declined');
+      const isMe = KhaosStore.enabled && A.id === KhaosStore.userId();
+      const sent = s.advReq === A.id || !!myReq;
       const svcSel = s.advSvc != null ? A.svc[s.advSvc] : null;
       const tileBg = ['#e9e4d9', '#1a1c21', '#d4d1c9', 'linear-gradient(160deg,#e5242d,#6e0d13)'];
       const tileSpan = [true, false, false, true], tileAr = ['16/9.5', '4/5', '4/5', '16/7.5'], tileRad = ['26px', '26px 26px 26px 64px', '64px 26px 26px 26px', '26px'];
@@ -441,9 +460,10 @@ class Component extends DCLogic {
       const ba = A.ba;
       P = {
         name: A.name.toUpperCase(), role: A.role, line: A.line, bio: A.bio, status: A.st, dot: A.st === 'En línea' ? 'oklch(0.8 0.17 150)' : 'oklch(0.7 0.01 250)', resp: A.resp,
-        ratingTxt: A.rate.toFixed(1) + ' · ' + A.nrev + ' opiniones', fromTxt: 'Desde ' + money(Math.min(...A.svc.map(v => v[2]))),
+        ratingTxt: A.rate ? A.rate.toFixed(1) + ' · ' + A.nrev + ' opiniones' : 'Nuevo en KHAOS', fromTxt: Math.min(...A.svc.map(v => v[2])) ? 'Desde ' + money(Math.min(...A.svc.map(v => v[2]))) : 'Tarifa a convenir',
+        hasWork: A.work.length > 0, hasFits: A.fits.length > 0, hasExp: A.exp.length > 0, hasRev: A.rev.length > 0,
         heroStyle: { position: 'relative', margin: '0 22px', borderRadius: '34px 34px 34px 90px', overflow: 'hidden', aspectRatio: '4/5', background: T.bg, color: T.fg, border: '1px solid oklch(1 0 0 / 0.14)', boxShadow: '0 20px 50px oklch(0 0 0 / 0.45)' },
-        heroPh: { position: 'absolute', inset: 0, backgroundImage: 'url(' + rs(A.ph) + ')', backgroundSize: T.cover ? 'cover' : 'auto 72%', backgroundPosition: A.pos, backgroundRepeat: 'no-repeat', animation: 'khLogo .9s cubic-bezier(.2,.8,.2,1) both' },
+        heroPh: { position: 'absolute', inset: 0, backgroundImage: A.ph ? 'url(' + rs(A.ph) + ')' : 'none', backgroundSize: T.cover ? 'cover' : 'auto 72%', backgroundPosition: A.pos, backgroundRepeat: 'no-repeat', animation: 'khLogo .9s cubic-bezier(.2,.8,.2,1) both' },
         heroShade: { position: 'absolute', inset: 0, background: T.shade, pointerEvents: 'none' },
         heroText: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: '20px 20px 22px', display: 'grid', gap: '8px', color: T.fg },
         tags: A.tags.map(t => ({ label: SPEC[t] })),
@@ -466,10 +486,10 @@ class Component extends DCLogic {
         baLine: { position: 'absolute', top: 0, bottom: 0, left: s.advBA + '%', width: '2px', marginLeft: '-1px', background: '#e5242d', pointerEvents: 'none' },
         exp: A.exp.map(e => ({ y: e[0], t: e[1] })),
         rev: A.rev.map(r => ({ by: r[0], t: r[1], stars: stars(r[2]) })),
-        sent, ctaLabel: sent ? 'Solicitud enviada ✓' : (svcSel ? 'Solicitar · ' + svcSel[0] : 'Solicitar asesoría'),
-        ctaGo: request(idx, s.advSvc),
+        sent, ctaLabel: isMe ? 'Este es tu perfil' : (myReq && myReq.status === 'accepted' ? 'Solicitud aceptada ✓' : (sent ? 'Solicitud enviada ✓' : (svcSel ? 'Solicitar · ' + svcSel[0] : 'Solicitar asesoría'))),
+        ctaGo: isMe ? (() => {}) : request(idx, s.advSvc),
         ctaStyle: { width: '100%', minHeight: '54px', borderRadius: '27px', fontSize: '14px', fontWeight: 800, letterSpacing: '0.02em', cursor: 'pointer', color: sent ? '#121212' : '#ffffff', background: sent ? 'oklch(0.9 0.05 235)' : '#e5242d', border: '1px solid oklch(1 0 0 / 0.25)', boxShadow: sent ? 'none' : '0 10px 30px oklch(0.5 0.21 27 / 0.55)' },
-        sentText: sent ? 'Listo. ' + A.name.split(' ')[0] + ' te escribirá en menos de 24 horas para acordar la sesión' + (s.advReqSvc != null ? ' (' + A.svc[s.advReqSvc][0] + ')' : '') + '.' : ''
+        sentText: myReq && myReq.status === 'accepted' ? A.name.split(' ')[0] + ' aceptó tu solicitud. Contacto: ' + (myReq.contact || 'te lo comparte por KHAOS') : (sent ? 'Listo. ' + A.name.split(' ')[0] + ' recibió tu solicitud. Cuando la acepte, verás aquí cómo contactarle (también en tu Perfil).' : '')
       };
       if (s.advPrev) {
         const k = s.advPrev.k, L = k === 'w' ? A.work : A.fits, n = L.length, i = ((s.advPrev.i % n) + n) % n, it = L[i];
@@ -477,7 +497,7 @@ class Component extends DCLogic {
           boxStyle: { flex: 1, minHeight: 0, position: 'relative', margin: '0 22px', borderRadius: '28px', overflow: 'hidden', background: '#d4d1c9', animation: 'khPop2 .35s ease both' },
           imgStyle: { position: 'absolute', inset: 0, backgroundImage: 'url(' + rs(k === 'w' ? it[0] : it[1]) + ')', backgroundSize: 'auto 88%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' },
           close: () => this.setState({ advPrev: null }), prev: () => this.setState({ advPrev: { k, i: i - 1 } }), next: () => this.setState({ advPrev: { k, i: i + 1 } }),
-          ask: () => { this.setState({ advReq: idx, advReqSvc: null, advPrev: null }); } };
+          ask: () => { this.setState({ advPrev: null }); this.requestSession(idx, null); } };
       }
     }
 
@@ -487,9 +507,9 @@ class Component extends DCLogic {
       const C = s.advCmp.map(byId), side = (fn) => ({ a: fn(C[0]), b: fn(C[1]) });
       CMP = {
         head: C.map(a => { const T = TONES[a.tone]; return { name: a.name.toUpperCase(), role: a.role, open: open(a.id), drop: cmpTog(a.id), aria: 'Ver perfil de ' + a.name, st: { position: 'relative', display: 'block', width: '100%', aspectRatio: '3/3.8', padding: 0, cursor: 'pointer', overflow: 'hidden', borderRadius: '24px', color: T.fg, background: T.bg, border: '1px solid oklch(1 0 0 / 0.14)' },
-          ph: { position: 'absolute', inset: 0, backgroundImage: 'url(' + rs(a.ph) + ')', backgroundSize: T.cover ? 'cover' : 'auto 66%', backgroundPosition: a.pos, backgroundRepeat: 'no-repeat' }, shade: { position: 'absolute', inset: 0, background: T.shade }, ini: a.ini }; }),
-        rows: [['Especialidades', (a) => a.tags.map(t => SPEC[t]).join(' · ')], ['Desde', (a) => money(Math.min(...a.svc.map(v => v[2])))], ['Valoración', (a) => '★ ' + a.rate.toFixed(1) + ' (' + a.nrev + ')'], ['Responde', (a) => a.resp], ['Disponibilidad', (a) => a.st]].map(([label, fn]) => ({ label, ...side(fn) })),
-        fits: [0, 1, 2].map(k => { const f = (a) => ({ t: a.fits[k][0], ph: { position: 'absolute', inset: 0, backgroundImage: 'url(' + rs(a.fits[k][1]) + ')', backgroundSize: 'auto 84%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' } }); return { n: k + 1, ...side(f) }; }),
+          ph: { position: 'absolute', inset: 0, backgroundImage: a.ph ? 'url(' + rs(a.ph) + ')' : 'none', backgroundSize: T.cover ? 'cover' : 'auto 66%', backgroundPosition: a.pos, backgroundRepeat: 'no-repeat' }, shade: { position: 'absolute', inset: 0, background: T.shade }, ini: a.ini }; }),
+        rows: [['Especialidades', (a) => a.tags.map(t => SPEC[t]).join(' · ')], ['Desde', (a) => money(Math.min(...a.svc.map(v => v[2]))) ], ['Valoración', (a) => a.rate ? '★ ' + a.rate.toFixed(1) + ' (' + a.nrev + ')' : 'Nuevo'], ['Responde', (a) => a.resp], ['Disponibilidad', (a) => a.st]].map(([label, fn]) => ({ label, ...side(fn) })),
+        fits: [0, 1, 2].filter(k => C[0].fits[k] && C[1].fits[k]).map(k => { const f = (a) => ({ t: a.fits[k][0], ph: { position: 'absolute', inset: 0, backgroundImage: 'url(' + rs(a.fits[k][1]) + ')', backgroundSize: 'auto 84%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' } }); return { n: k + 1, ...side(f) }; }),
         ctas: C.map(a => ({ label: 'Ver perfil de ' + a.name.split(' ')[0], go: open(a.id) }))
       };
     }
@@ -499,7 +519,7 @@ class Component extends DCLogic {
       isAdvList: isList, isAdvProf: !!A, isAdvCmp: isCmp, advRef: this.advRef, goAdvList: goList,
       ticker: unit.repeat(4), chips, recs, recTitle: topTag ? 'Para ti · según lo que exploras' : 'Para empezar', showRecs: plain,
       showFeat: !!featA, feat, cards, noRes: res.length === 0, advQ: s.advQ, onAdvQ: (e) => this.setState({ advQ: e.target.value.slice(0, 40) }),
-      resCount: res.length === 1 ? '1 asesor' : res.length + ' asesores', clearAdv: () => this.setState({ advQ: '', advF: '', advFavOnly: false }),
+      resCount: res.length === 1 ? '1 asesor' : res.length + ' asesores', clearAdv: () => this.setState({ advQ: '', advF: '', advFavOnly: false }), noResText: ADV.length ? 'No encontramos asesores con ese filtro. Prueba otra especialidad o busca por otra palabra.' : 'Aún no hay asesores registrados. Pronto verás aquí a las primeras personas.',
       P, pv, cmp: CMP, tray
     };
   };
@@ -647,7 +667,7 @@ class Component extends DCLogic {
   };
   clearPhoto = () => this.setState({ photoDraft: null });
   state = {
-    paidText: '', confirmOut: false, helpQ: '', helpOpen: -1, plan: 'mensual', paying: false, paid: false, payId: 'card1', addingCard: false, cNum: '', cName: '', cExp: '', cCvv: '', cardError: '', payCards: [{ id: 'card1', brand: 'VISA', last: '4242', name: 'Tú' }],
+    requests: [], aBusy: false, delArm: null, posting: false, confirmOut: false, helpQ: '', helpOpen: -1,
     reports: {}, pBase: 0, pTitle: '', pText: '', posters: [], dTipo: 'Hoodies', dEstado: 'Buen estado', dNombre: '', dFoto: null, dCode: '', dErr: false,
     advHomeSel: 0, splashOut: false, rulesGone: false, space: '', spaceJoined: {}, edOpen: false, edAr: '3/4', edEls: [], edBg: { c1: '#e5242d', c2: '#0b0b0d' }, edSel: null, edTab: 'add', edTarget: 'fill', edHsv: { h: 0, s: 0.85, v: 0.9 }, edFavs: [], edTitle: '', edStory: '', edTags: '', stories: SEED_STORIES, storyView: null, cmDraft: '', cmErr: '', comments: {}, sReacts: {},
     phraseI: Math.floor(Math.random() * 10), aboutOpen: -1, fCed: '', fPermData: false, fPermNotif: false, advReq: null, advReqSvc: null, advQ: '', advF: '', advFavOnly: false, advFav: {}, advCmp: [], advView: null, advSvc: null, advBA: 50, advPrev: null, advPref: {}, phraseO: 1, gyro: false, reacts: {}, pickOpen: {}, photoDraft: null,
@@ -656,7 +676,7 @@ class Component extends DCLogic {
     isAdvisor: false, aMode: 'signup', aStep: 0, aName: '', aEmail: '', aPass: '', aSpecs: [], aYears: '', aBio: '', aHow: [], aAvail: [], aLink: '', aTerms: false, aErr: '', aTitle: '', aLine: '', aRate: '', aPhoto: null, aSaved: false,
     notif: false, step: 0, answers: [], msgs: null, phase: 'q', draft: '', identity: null,
     tryOn: {}, trySel: null, tryTab: 'all', tryConsent: null, trySaved: false,
-    combo: null, add: null, build: null, toast: null, mood: null, moodLog: {}, helpOn: false, wins: [], winDraft: '', ropaView: 'hub', donSel: {}, donDest: 'Punto KHAOS', donDone: false, donLast: 0, inspTab: 'Streetwear', comSafe: false, motionOn: false, channel: 'looks', posts: JSON.parse(JSON.stringify(SEED)), postDraft: '', liked: {}, myPosts: 0, faq: false, article: null, artCat: 'Todos', rted: {}, hov: null, detail: null, closet: CLOSET, outfit: { eyes: 2 }, favs: { 2: true }, pos: {}, drag: null, closetCat: 'Todo', shared: false, anon: false, circle: false, joined: { bienvenida: true, normas: true, general: true }, pending: {}, rulesOk: false
+    combo: null, add: null, build: null, toast: null, mood: null, moodLog: {}, helpOn: false, wins: [], winDraft: '', ropaView: 'hub', donSel: {}, donDest: 'Punto KHAOS', donDone: false, donLast: 0, inspTab: 'Streetwear', comSafe: false, motionOn: false, channel: 'looks', posts: freshPosts(), postDraft: '', liked: {}, myPosts: 0, faq: false, article: null, artCat: 'Todos', rted: {}, hov: null, detail: null, closet: CLOSET, outfit: { eyes: 2 }, favs: { 2: true }, pos: {}, drag: null, closetCat: 'Todo', shared: false, anon: false, circle: false, joined: { bienvenida: true, normas: true, general: true }, pending: {}, rulesOk: false
   };
   chatRef = React.createRef();
   tryStageRef = React.createRef();
@@ -676,7 +696,7 @@ class Component extends DCLogic {
   // --- Persistencia local (MVP sin backend) -------------------------------
   // Guarda solo datos del usuario, nunca datos de tarjeta. Todo pasa por
   // window.KhaosStore (store.js), pensado para cambiarse luego por Supabase.
-  static PERSIST_KEYS = ['authed', 'fName', 'fEmail', 'fAge', 'plan', 'paid', 'paidText', 'closet', 'liked', 'pinned', 'favs', 'moodLog', 'wins', 'advFav'];
+  static PERSIST_KEYS = ['authed', 'fName', 'fEmail', 'fAge', 'closet', 'liked', 'pinned', 'favs', 'moodLog', 'wins', 'advFav'];
   hydrate() {
     const saved = window.KhaosStore && window.KhaosStore.load();
     if (!saved) return;
@@ -705,39 +725,67 @@ class Component extends DCLogic {
   stopSync() { clearInterval(this._syncT); this._syncT = null; }
   loadRemote() {
     if (!KhaosStore.enabled || !KhaosStore.hasSession()) return Promise.resolve();
-    return Promise.all([KhaosStore.listPosts(100), KhaosStore.listCloset(), KhaosStore.getProfile()]).then(([rows, items, prof]) => {
-      const posts = JSON.parse(JSON.stringify(SEED));
+    return Promise.all([KhaosStore.listPosts(100), KhaosStore.listCloset(), KhaosStore.getProfile(), KhaosStore.listAdvisors(), KhaosStore.myRequests()]).then(([rows, items, prof, advs, reqs]) => {
+      const posts = freshPosts();
       let mine = 0;
       rows.slice().reverse().forEach((r) => {
         if (r.mine) mine++;
-        const p = { id: r.id, user: r.anon ? 'Anónimo' : (r.author || 'tú'), anon: r.anon, circle: r.circle, mine: r.mine, text: r.body, time: Component.relTime(r.created_at), likes: 0 };
+        const p = { id: r.id, remote: true, user: r.anon ? 'Anónimo' : (r.author || 'tú'), anon: r.anon, circle: r.circle, mine: r.mine, text: r.body, photo: r.photo_url || null, time: Component.relTime(r.created_at), likes: 0, phrases: r.phrases || [], myPhrases: r.my_phrases || [], reported: !!r.reported };
         (posts[r.channel] = posts[r.channel] || []).unshift(p);
       });
-      const local = this.state.posts || {};
-      Object.keys(local).forEach((ch) => { const keep = (local[ch] || []).filter((p) => p.mine && p.photo); if (keep.length) posts[ch] = [...keep, ...(posts[ch] || [])]; });
       const ids = new Set(items.map((i) => i.id));
       const remote = items.map((i) => ({ id: i.id, name: i.name, cat: i.cat, img: i.img, color: 'oklch(0.422 0.02 250)', worn: i.worn || 0, synced: true }));
-      this.setState((st) => ({
-        posts, myPosts: mine,
-        closet: [...remote, ...st.closet.filter((c) => !c.synced && !ids.has(c.id))],
-        fName: (prof && prof.username) || st.fName
-      }));
+      ADV.length = 0; advs.forEach((r) => ADV.push(advFromRow(r)));
+      const isAdv = !!(prof && prof.role === 'advisor');
+      const myAdv = isAdv ? advs.find((r) => r.user_id === KhaosStore.userId()) : null;
+      this.setState((st) => {
+        const patch = {
+          posts, myPosts: mine, requests: reqs || [], isAdvisor: isAdv,
+          closet: [...remote, ...st.closet.filter((c) => !c.synced && !ids.has(c.id))],
+          fName: (prof && prof.username) || st.fName
+        };
+        if (myAdv && !st.aLoaded) Object.assign(patch, { aLoaded: true, aName: myAdv.name, aTitle: myAdv.title, aLine: myAdv.line, aBio: myAdv.bio, aSpecs: myAdv.specs || [], aYears: myAdv.years, aHow: myAdv.how || [], aAvail: myAdv.avail || [], aRate: myAdv.rate_cop ? String(myAdv.rate_cop) : '', aPhoto: myAdv.photo_url || null });
+        return patch;
+      });
+      if (myAdv && !this._contactLoaded) { this._contactLoaded = true; KhaosStore.getMyContact().then((c) => this.setState({ aLink: c })).catch(() => { this._contactLoaded = false; }); }
     }).catch((e) => {
       if (e && (e.code === 'no_session' || e.status === 401)) this.endSession();
       else console.warn('KHAOS: no se pudo sincronizar', e);
     });
   }
+  // --- imágenes: redimensiona y devuelve un Blob JPEG ---
+  static toBlob(file, max, cb) {
+    const rd = new FileReader();
+    rd.onerror = () => cb(null);
+    rd.onload = () => { const im = new Image(); im.onerror = () => cb(null); im.onload = () => { const k = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement('canvas'); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); c.toBlob((b) => cb(b), 'image/jpeg', 0.85); }; im.src = rd.result; };
+    rd.readAsDataURL(file);
+  }
+  // --- solicitudes de sesión ---
+  requestSession = (advisorId, svcIdx) => {
+    const a = ADV.find((x) => x.id === advisorId); if (!a) return;
+    const svc = svcIdx != null && a.svc[svcIdx] ? a.svc[svcIdx][0] : (a.svc[0] ? a.svc[0][0] : '');
+    if (!KhaosStore.enabled) { this.setState({ advReq: advisorId, advReqSvc: svcIdx == null ? null : svcIdx }); return; }
+    if (this.state.advReq === advisorId) return;
+    KhaosStore.requestSession(advisorId, svc, '').then(() => { this.setState({ advReq: advisorId }); return this.loadRemote(); })
+      .catch((e) => this.say(e && e.status === 409 ? 'Ya tienes una solicitud pendiente con esta persona.' : (e && e.code === 'network' ? 'Sin conexión. Inténtalo de nuevo.' : 'No pudimos enviar la solicitud.')));
+  };
+  answerRequest = (id, accept) => {
+    KhaosStore.respondRequest(id, accept).then(() => this.loadRemote()).catch(() => this.say('No pudimos responder la solicitud.'));
+  };
   endSession() {
     this.stopSync();
     this.setState((st) => ({
       authed: false, screen: 'splash', regMode: 'login', fPass: '',
-      posts: JSON.parse(JSON.stringify(SEED)), myPosts: 0,
+      posts: freshPosts(), myPosts: 0, requests: [], isAdvisor: false, aLoaded: false,
       closet: st.closet.filter((c) => !c.synced)
     }));
   }
-  remotePost(channel, body, anon, circle) {
-    if (!KhaosStore.enabled || !KhaosStore.hasSession()) return;
-    KhaosStore.addPost({ channel, body, anon, circle }).then(() => this.loadRemote()).catch((e) => { console.warn('KHAOS: no se pudo publicar', e); this.loadRemote(); });
+  remotePost(channel, body, anon, circle, photo_url) {
+    if (!KhaosStore.enabled || !KhaosStore.hasSession()) return Promise.resolve();
+    return KhaosStore.addPost({ channel, body, anon, circle, photo_url }).then(() => this.loadRemote());
+  }
+  patchPost(id, fn) {
+    this.setState((st) => { const posts = {}; Object.keys(st.posts).forEach((ch) => { posts[ch] = st.posts[ch].map((p) => (p.id === id ? fn(p) : p)); }); return { posts }; });
   }
   authError(e) {
     const m = {
@@ -953,16 +1001,17 @@ class Component extends DCLogic {
       toggleATerms: () => this.setState({ aTerms: !s.aTerms }),
       aSpecChips: multi('aSpecs', SPECS), aYearChips: single('aYears', YEARS), aHowChips: multi('aHow', HOW), aAvailChips: multi('aAvail', AVAIL),
       aSave: this.aSave,
-      onAPhoto: (e) => { const f = e.target.files && e.target.files[0]; if (f) this.setState({ aPhoto: URL.createObjectURL(f), aSaved: false }); },
+      onAPhoto: (e) => { const f = e.target.files && e.target.files[0]; if (!f) return; if (!/^image\/(jpeg|png|webp|gif|heic)/.test(f.type)) return this.setState({ aErr: 'Elige una imagen (JPG, PNG o WebP).' }); this._aFile = f; this.setState({ aPhoto: URL.createObjectURL(f), aSaved: false, aErr: '' }); },
       aPhotoBg: s.aPhoto ? 'url(' + s.aPhoto + ')' : 'linear-gradient(135deg, oklch(0.6 0.064 230), oklch(0.38 0.15 20))',
       aInitial: s.aPhoto ? '' : (nm[0] || 'A').toUpperCase(),
       aPrevName: (nm || 'Tu nombre').toUpperCase(), aPrevRole: s.aTitle || s.aSpecs[0] || 'Tu especialidad',
       aPrevLine: s.aLine || (s.aBio.trim() ? s.aBio.trim().slice(0, 90) + (s.aBio.trim().length > 90 ? '…' : '') : 'Tu frase corta aparece aquí.'),
       aPrevRate: (rate ? '$' + rate.toLocaleString('es-CO') + ' COP por sesión' : 'Tarifa por definir') + (s.aHow.length ? ' · ' + s.aHow.join(', ') : ''),
       verifyGo: () => {
-        if (s.isAdvisor || !KhaosStore.enabled || KhaosStore.hasSession()) return this.setState({ screen: s.isAdvisor ? 'perfil' : 'home' });
-        KhaosStore.signIn(s.fEmail.trim(), s.fPass)
-          .then(() => { this.setState({ screen: 'home', authed: true, fPass: '', fCed: '' }); this.startSync(); })
+        if (!KhaosStore.enabled || KhaosStore.hasSession()) return this.setState({ screen: s.isAdvisor ? 'perfil' : 'home' });
+        KhaosStore.signIn(s.fEmail.trim(), s.isAdvisor ? s.aPass : s.fPass)
+          .then(() => (s.isAdvisor ? this.saveAdvisorRemote(true) : null))
+          .then(() => { this.setState({ screen: s.isAdvisor ? 'perfil' : 'home', authed: true, fPass: '', fCed: '', aPass: '' }); this.startSync(); })
           .catch(() => this.say && this.say('Aún no confirmas tu correo'));
       }
     };
@@ -974,6 +1023,19 @@ class Component extends DCLogic {
     if (s.aMode === 'login') {
       if (!this.aEmailOk(s.aEmail)) return this.setState({ aErr: 'Revisa tu correo.' });
       if (!s.aPass) return this.setState({ aErr: 'Escribe tu contraseña.' });
+      if (KhaosStore.enabled) {
+        if (s.aBusy) return;
+        this.setState({ aBusy: true, aErr: '' });
+        KhaosStore.signIn(s.aEmail.trim(), s.aPass)
+          .then(() => KhaosStore.getProfile())
+          .then((prof) => {
+            if (!prof || prof.role !== 'advisor') { KhaosStore.signOut(); throw Object.assign(new Error('not_advisor'), { code: 'not_advisor' }); }
+            this.setState({ aBusy: false, aPass: '', authed: true, isAdvisor: true, aLoaded: false, screen: 'perfil', aSaved: false });
+            this.startSync();
+          })
+          .catch((er) => this.setState({ aBusy: false, aErr: er && er.code === 'not_advisor' ? 'Esta cuenta no es de asesor. Entra desde el inicio normal.' : this.authError(er) }));
+        return;
+      }
       const nm = s.aName || s.aEmail.split('@')[0];
       this.setState({ aErr: '', isAdvisor: true, aName: nm, fName: nm, fEmail: s.aEmail, screen: 'perfil', aSaved: false,
         aSpecs: s.aSpecs.length ? s.aSpecs : ['Imagen y estilismo'], aYears: s.aYears || '1–3 años', aHow: s.aHow.length ? s.aHow : ['Videollamada'], aAvail: s.aAvail.length ? s.aAvail : ['Tardes'],
@@ -994,16 +1056,39 @@ class Component extends DCLogic {
     }
     if (!s.aHow.length) return this.setState({ aErr: 'Elige cómo atiendes.' });
     if (!s.aAvail.length) return this.setState({ aErr: 'Elige cuándo estás disponible.' });
-    if (!s.aTerms) return this.setState({ aErr: 'Debes aceptar los términos y la revisión del equipo.' });
+    if (!s.aLink.trim()) return this.setState({ aErr: 'Escribe cómo te contactan al aceptar una sesión.' });
+    if (!s.aTerms) return this.setState({ aErr: 'Debes aceptar los términos.' });
+    if (KhaosStore.enabled) {
+      if (s.aBusy) return;
+      this.setState({ aBusy: true, aErr: '' });
+      KhaosStore.signUp(s.aEmail.trim(), s.aPass, { username: s.aName.trim().slice(0, 30), role: 'advisor' })
+        .then((r) => {
+          if (r.needsConfirm) return this.setState({ aBusy: false, isAdvisor: true, fName: s.aName.trim(), fEmail: s.aEmail.trim(), screen: 'verify' });
+          return this.saveAdvisorRemote(true).then(() => { this.setState({ aBusy: false, aPass: '', authed: true, isAdvisor: true, aLoaded: true, fName: s.aName.trim(), screen: 'perfil', aSaved: false }); this.startSync(); });
+        })
+        .catch((er) => this.setState({ aBusy: false, aErr: this.authError(er) }));
+      return;
+    }
     this.setState({ aErr: '', isAdvisor: true, fName: s.aName.trim(), fEmail: s.aEmail.trim(), aTitle: s.aSpecs[0], screen: 'verify', aSaved: false });
+  };
+  saveAdvisorRemote = (first) => {
+    const s = this.state;
+    const rate = parseInt((s.aRate || '').replace(/[^0-9]/g, ''), 10);
+    const photoStep = this._aFile
+      ? new Promise((res, rej) => Component.toBlob(this._aFile, 900, (b) => (b ? KhaosStore.upload(b, 'jpg').then(res, rej) : rej(new Error('img')))))
+      : Promise.resolve(s.aPhoto && /^https:/.test(s.aPhoto) ? s.aPhoto : null);
+    return photoStep.then((url) => KhaosStore.saveAdvisor({ name: s.aName.trim(), title: (s.aTitle || s.aSpecs[0] || '').trim(), line: (s.aLine || '').trim(), bio: s.aBio.trim(), specs: s.aSpecs, years: s.aYears || '', how: s.aHow, avail: s.aAvail, rate_cop: rate > 0 ? rate : null, photo_url: url }, (s.aLink || '').trim())
+      .then(() => { this._aFile = null; if (url) this.setState({ aPhoto: url }); }));
   };
   aSave = () => {
     const s = this.state;
     if (!s.aName.trim()) return this.setState({ aErr: 'Escribe tu nombre público.', aSaved: false });
     if (s.aBio.trim().length < 30) return this.setState({ aErr: 'Tu bio necesita mínimo 30 caracteres.', aSaved: false });
     if (!s.aSpecs.length) return this.setState({ aErr: 'Elige al menos una especialidad.', aSaved: false });
-    this.setState({ aErr: '', aSaved: true, fName: s.aName.trim() });
-    clearTimeout(this._at); this._at = setTimeout(() => this.setState({ aSaved: false }), 3500);
+    const done = () => { this.setState({ aErr: '', aSaved: true, fName: s.aName.trim() }); clearTimeout(this._at); this._at = setTimeout(() => this.setState({ aSaved: false }), 3500); };
+    if (!KhaosStore.enabled) return done();
+    this.saveAdvisorRemote(false).then(() => { done(); this.loadRemote(); })
+      .catch((er) => this.setState({ aErr: er && er.code === 'network' ? 'Sin conexión. Inténtalo de nuevo.' : 'No pudimos guardar tu perfil.', aSaved: false }));
   };
 
   joinChannel = () => {
@@ -1144,20 +1229,29 @@ class Component extends DCLogic {
     if (!names.length || s.shared) return;
     const posts = { ...s.posts, looks: [{ user: s.fName || 'tú', mine: true, text: 'Fit de hoy: ' + names.join(' + '), time: 'ahora', likes: 0 }, ...s.posts.looks] };
     this.setState(x => ({ posts, shared: true, myPosts: x.myPosts + 1 }));
-    this.remotePost('looks', 'Fit de hoy: ' + names.join(' + '), false, false);
+    this.remotePost('looks', 'Fit de hoy: ' + names.join(' + '), false, false).catch(() => this.loadRemote());
   };
 
   sendPost = (e) => {
     e.preventDefault();
     const t = this.state.postDraft.trim(), photo = this.state.photoDraft;
     if (!t && !photo) return;
-    const ch = this.state.channel, id = 'p' + Date.now();
-    const posts = { ...this.state.posts, [ch]: [{ id, user: this.state.anon ? 'Anónimo' : (this.state.fName || 'tú'), anon: this.state.anon, circle: this.state.circle, mine: true, text: t, photo, time: 'ahora', likes: 0 }, ...this.state.posts[ch]] };
+    const ch = this.state.channel, anon = !!this.state.anon, circle = !!this.state.circle;
+    if (KhaosStore.enabled) {
+      if (this.state.posting) return;
+      this.setState({ posting: true });
+      const up = photo ? fetch(photo).then((r) => r.blob()).then((b) => KhaosStore.upload(b, 'jpg')) : Promise.resolve(null);
+      up.then((url) => this.remotePost(ch, t, anon, circle, url))
+        .then(() => this.setState({ postDraft: '', photoDraft: null, posting: false }))
+        .catch((er) => { this.setState({ posting: false }); this.say(er && er.code === 'network' ? 'Sin conexión. Tu post sigue en el borrador.' : 'No pudimos publicar. Inténtalo de nuevo.'); });
+      return;
+    }
+    const id = 'p' + Date.now();
+    const posts = { ...this.state.posts, [ch]: [{ id, user: anon ? 'Anónimo' : (this.state.fName || 'tú'), anon, circle, mine: true, text: t, photo, time: 'ahora', likes: 0 }, ...this.state.posts[ch]] };
     this.setState(s => ({ posts, postDraft: '', photoDraft: null, myPosts: s.myPosts + 1 }));
-    if (t) this.remotePost(ch, t, !!this.state.anon, !!this.state.circle);
     if (photo) {
       const give = (t2, say) => setTimeout(() => this.setState(st => ({ reacts: { ...st.reacts, [id]: [...(st.reacts[id] || []), t2] } }), () => { if (say && this.say) this.say('Alguien te dejó una frase: «' + t2 + '»'); }), say ? 2200 : 4800);
-      give('Te ves increíble', true); give('Qué orgullo verte', false);
+      give('Inspirador', true); give('Auténtico', false);
     }
   };
 
@@ -1165,7 +1259,7 @@ class Component extends DCLogic {
     const id = IDENTITIES[this.state.identity];
     const posts = { ...this.state.posts, looks: [{ user: this.state.fName || 'tú', text: 'Mi identidad KHAOS: ' + id.n.toUpperCase() + ' ✦', time: 'ahora', likes: 0 }, ...this.state.posts.looks] };
     this.setState(s => ({ posts, channel: 'looks', screen: 'comunidad', myPosts: s.myPosts + 1 }));
-    this.remotePost('looks', 'Mi identidad KHAOS: ' + id.n.toUpperCase() + ' ✦', false, false);
+    this.remotePost('looks', 'Mi identidad KHAOS: ' + id.n.toUpperCase() + ' ✦', false, false).catch(() => this.loadRemote());
   };
 
   renderVals() {
@@ -1192,7 +1286,7 @@ class Component extends DCLogic {
     const ch = CHANNELS.find(c => c.id === s.channel);
     const idObj = s.identity != null ? IDENTITIES[s.identity] : null;
     const name = s.fName || 'khaoser';
-    const jumpList = [['splash', 'Splash'], ['onb', 'Onboarding'], ['reg', 'Registro / login'], ['verify', 'Verificar correo'], ['home', 'Home'], ['asesor', 'Asesores (reales)'], ['pagos', 'Membresía / pago'], ['ayuda', 'Ayuda'], ['comunidad', 'Comunidad'], ['articulos', 'Historias'], ['ropa', 'Ropa (donar / inspírate)'], ['checkin', 'Mi día (autoestima)'], ['identidad', 'Identidad visual'], ['perfil', 'Perfil y ajustes']];
+    const jumpList = [['splash', 'Splash'], ['onb', 'Onboarding'], ['reg', 'Registro / login'], ['verify', 'Verificar correo'], ['home', 'Home'], ['asesor', 'Asesores (reales)'], ['ayuda', 'Ayuda'], ['comunidad', 'Comunidad'], ['articulos', 'Historias'], ['ropa', 'Ropa (donar / inspírate)'], ['checkin', 'Mi día (autoestima)'], ['identidad', 'Identidad visual'], ['perfil', 'Perfil y ajustes']];
     const dc = s.detail != null ? s.closet.find(c => c.id === s.detail) : null; const dOn = dc ? s.outfit[SLOT_OF[dc.cat]] === dc.id : false; const dFav = dc ? !!s.favs[dc.id] : false;
     const v = {
       detailOpen: !!dc, stageRef: this.stageRef, closeDetail: this.closeDetail, stageDown: this.stageDown, stageMove: this.stageMove, stageUp: this.stageUp,
@@ -1213,7 +1307,9 @@ class Component extends DCLogic {
       isSplash: s.screen === 'splash', isOnb: s.screen === 'onb', isReg: s.screen === 'reg', isVerify: s.screen === 'verify',
       ...this.advAccountVals(s),
       isHome: s.screen === 'home',
-      homeTiles: [['checkin','Mi día','D','Cómo te sientes hoy'],['asesor','Asesores','A','Sesiones con personas reales'],['comunidad','Comunidad','C','Espacios sin juicios'],['articulos','Historias','H','Moda y tendencias'],['ropa','Ropa','R','Dona e inspírate'],['pagos','Membresía','K+','Planes y pago']].map(([k, label, mark, sub]) => ({ label, mark, sub, go: () => this.setState({ screen: k, notif: false }) })), isAsesor: s.screen === 'asesor', isComunidad: s.screen === 'comunidad', isPerfil: s.screen === 'perfil', isArticulos: s.screen === 'articulos',
+      homeTiles: [['checkin','Mi día','D','Cómo te sientes hoy'],['asesor','Asesores','A','Sesiones con personas reales'],['comunidad','Comunidad','C','Espacios sin juicios'],['articulos','Historias','H','Moda y tendencias'],['ropa','Ropa','R','Dona e inspírate']].map(([k, label, mark, sub]) => ({ label, mark, sub, go: () => this.setState({ screen: k, notif: false }) })), hasReqs: (s.requests || []).length > 0, reqTitle: s.isAdvisor ? 'Solicitudes de sesión' : 'Mis solicitudes',
+      reqRows: (s.requests || []).map(r => ({ who: (r.as_advisor ? 'De ' : 'Para ') + (r.other_name || 'alguien'), service: r.service || 'Sesión', when: Component.relTime(r.created_at), status: ({ pending: 'Pendiente', accepted: 'Aceptada', declined: 'Rechazada' })[r.status], stCol: r.status === 'accepted' ? 'oklch(0.8 0.17 150)' : (r.status === 'declined' ? 'oklch(0.75 0.01 250)' : 'oklch(0.85 0.1 90)'), canAnswer: r.as_advisor && r.status === 'pending', accept: () => this.answerRequest(r.id, true), decline: () => this.answerRequest(r.id, false), hasContact: !r.as_advisor && r.status === 'accepted' && !!r.contact, contact: r.contact || '' })),
+      isAsesor: s.screen === 'asesor', isComunidad: s.screen === 'comunidad', isPerfil: s.screen === 'perfil', isArticulos: s.screen === 'articulos',
       articleList: s.article == null, articleOpen: s.article != null,
       artCats: ART_CATS.map(c => ({ label: c, go: () => this.setState({ artCat: c }), bg: s.artCat === c ? 'oklch(0.72 0.061 230 / 0.2)' : 'transparent', border: s.artCat === c ? 'oklch(0.72 0.061 230 / 0.6)' : 'oklch(1 0 0 / 0.15)' })),
       articles: ARTICLES.map((a, i) => ({ ...a, i })).filter(a => s.artCat === 'Todos' || a.cat === s.artCat).map(a => ({ ...a, open: () => window.open(a.url, '_blank', 'noopener') })),
@@ -1266,30 +1362,10 @@ class Component extends DCLogic {
       safeOpen: s.comSafe, openSafe: () => this.setState({ comSafe: true }), closeSafe: () => this.setState({ comSafe: false }),
       goNormas: () => this.setState({ comSafe: false, channel: 'normas' }),
       safeRules: [{ t: 'Entras con permiso', d: 'Los canales cerrados se abren solo con JOIN. Nadie entra sin que lo decidas.' }, { t: 'Tu cara no se publica', d: 'Las fotos del asesor y del probador son privadas y no se guardan.' }, { t: 'Tú decides qué ves', d: 'Silencia, bloquea o sal de un canal cuando quieras.' }, { t: 'Reportar es anónimo', d: 'Cada publicación se puede reportar y el equipo la revisa.' }, { t: 'Cero burlas', d: 'No se permiten comentarios sobre cuerpos, tallas ni identidades.' }],
-      showTabs: mainScreens.includes(s.screen) || s.screen === 'pagos' || s.screen === 'ayuda' || s.screen === 'ropa' || s.screen === 'identidad' || s.screen === 'checkin',
+      showTabs: mainScreens.includes(s.screen) || s.screen === 'ayuda' || s.screen === 'ropa' || s.screen === 'identidad' || s.screen === 'checkin',
       isAyuda: s.screen === 'ayuda', helpQ: s.helpQ, onHelpQ: (e) => this.setState({ helpQ: e.target.value, helpOpen: -1 }),
-      helpItems: (() => { const q = s.helpQ.trim().toLowerCase(); return [['¿Cómo pido una sesión con un asesor?','Ve a Asesores, elige a la persona que quieras y toca Pedir una sesión. Te escribirá en menos de 24 horas.'],['¿Cómo entro a un canal?','En Comunidad elige un canal y toca JOIN. Los canales cerrados son de KHAOS+.'],['¿Cómo funciona My closet?','Desde Perfil abre My closet. Toca una prenda para verla en 3D o usa Combinar para armar un outfit.'],['¿Cómo compro la membresía?','Perfil → Membresía KHAOS+. Elige un plan, un método de pago y toca Pagar y activar.'],['¿Cómo cancelo mi membresía?','Perfil → Membresía KHAOS+ → Cancelar membresía.'],['¿Cómo cierro sesión?','Perfil → Cerrar sesión. Te pedimos confirmar con un segundo toque.']].filter(([a, b]) => !q || (a + ' ' + b).toLowerCase().includes(q)).map(([a, b], i) => ({ q: a, a: b, go: () => this.setState({ helpOpen: s.helpOpen === i ? -1 : i }), sign: s.helpOpen === i ? '−' : '+', disp: s.helpOpen === i ? 'block' : 'none', bg: s.helpOpen === i ? 'oklch(1 0 0 / 0.1)' : 'oklch(1 0 0 / 0.04)' })); })(),
-      helpEmpty: [['¿Cómo pido una sesión con un asesor?','Ve a Asesores, elige a la persona que quieras y toca Pedir una sesión. Te escribirá en menos de 24 horas.'],['¿Cómo entro a un canal?','En Comunidad elige un canal y toca JOIN. Los canales cerrados son de KHAOS+.'],['¿Cómo funciona My closet?','Desde Perfil abre My closet. Toca una prenda para verla en 3D o usa Combinar para armar un outfit.'],['¿Cómo compro la membresía?','Perfil → Membresía KHAOS+. Elige un plan, un método de pago y toca Pagar y activar.'],['¿Cómo cancelo mi membresía?','Perfil → Membresía KHAOS+ → Cancelar membresía.'],['¿Cómo cierro sesión?','Perfil → Cerrar sesión. Te pedimos confirmar con un segundo toque.']].some(([a, b]) => !s.helpQ.trim() || (a + ' ' + b).toLowerCase().includes(s.helpQ.trim().toLowerCase())) ? 'none' : 'block',
-      isPagos: s.screen === 'pagos', paid: s.paid, notPaid: !s.paid, resetPay: () => this.setState({ paid: false, paying: false, plan: 'mensual', payStep: false }), planStep: !s.payStep, sumShort: ({ free: 'Para empezar', mensual: 'Acceso completo', anual: 'Acceso completo + merch' })[s.plan], sumPrice: ({ free: '$0', mensual: '$14.900', anual: '$119.900' })[s.plan], sumPer: ({ free: 'siempre', mensual: '/mes', anual: '/año' })[s.plan], sumBill: ({ free: 'Sin costo, sin tarjeta obligatoria.', mensual: 'Facturación mensual a partir de hoy.', anual: 'Facturación anual a partir de hoy.' })[s.plan], isCardPay: (s.payM || 'card') === 'card', payOpts: [{ id: 'card', name: 'Tarjeta', i1: 'url(' + rs('assets/logo-visa.svg') + ')', i2: 'url(' + rs('assets/logo-mastercard.svg') + ')', w1: 36, w2: 36 }, { id: 'apple', name: 'Apple Pay', i1: 'url(' + rs('assets/logo-apple.svg') + ')', i2: 'none', w1: 18, w2: 0 }, { id: 'gpay', name: 'Google Pay', i1: 'url(' + rs('assets/logo-gpay.svg') + ')', i2: 'none', w1: 22, w2: 0 }].map(o => { const on = (s.payM || 'card') === o.id; return { ...o, go: () => this.setState({ payM: o.id }), dot: on ? 1 : 0, ring: on ? 'oklch(0.98 0 0)' : 'oklch(1 0 0 / 0.4)', bg: on ? 'oklch(1 0 0 / 0.1)' : 'oklch(1 0 0 / 0.03)', bd: on ? 'oklch(1 0 0 / 0.5)' : 'oklch(1 0 0 / 0.14)' }; }), payStep: !!s.payStep, backPlans: () => this.setState({ payStep: false }),
-      plans: [{ id: 'free', name: 'Free', tag: 'Actual', sub: 'Canales abiertos y asesores', price: '$0', per: 'siempre', amt: 0 }, { id: 'mensual', name: 'Plus', tag: 'Popular', sub: 'Canales cerrados, asesor sin límite y My closet ilimitado', price: '$14.900', per: 'COP / mes', amt: 14900 }, { id: 'anual', name: 'Pro', tag: 'Ahorra 33%', sub: 'Todo Plus y un drop de merch al año', price: '$119.900', per: 'COP / año', amt: 119900 }].map(p => ({ ...p, go: () => this.setState({ plan: p.id, payStep: true }), short: ({ free: 'Para empezar', mensual: 'Acceso completo', anual: 'Acceso completo + merch' })[p.id], per2: ({ free: 'siempre', mensual: '/mes', anual: '/año' })[p.id], items: ({ free: ['Asesor básico', 'Canales abiertos', 'My closet hasta 10 prendas', 'Sin costo, cancela cuando quieras.'], mensual: ['Canales cerrados: #expertos, #retos, #drops', 'Asesor sin límite y My closet ilimitado', 'Facturación mensual a partir de hoy.', 'Cancela cuando quieras.'], anual: ['Todo lo de Mensual', 'Un drop de merch al año y eventos para miembros', 'Facturación anual a partir de hoy.', 'Cancela cuando quieras.'] })[p.id].map(x => ({ t: x })), cta: p.id === 'free' ? 'Continuar gratis' : 'Obtener ' + p.name.replace('KHAOS+ ', ''), tint: 'oklch(0.3 0.006 250)', col: 'oklch(0.98 0 0)', delay: (['mensual','anual','free'].indexOf(p.id) >= 0 ? ['mensual','anual','free'].indexOf(p.id) : 0) * 0.12 + 's', enter: () => this.setState({ hovPlan: p.id }), leave: (e) => { if (e && e.currentTarget) this.untilt(e); this.setState({ hovPlan: null }); }, hintO: s.hovPlan === p.id ? 0 : 1, perkH: s.hovPlan === p.id ? '160px' : '0px', perkO: s.hovPlan === p.id ? 1 : 0, perkList: ({ free: ['Asesor básico', 'Canales abiertos', 'My closet hasta 10 prendas', 'Con anuncios de colecciones'], mensual: ['Canales cerrados: #expertos, #retos, #drops', 'Asesor sin límite', 'My closet ilimitado', 'Acceso anticipado a colecciones'], anual: ['Todo lo de Mensual', 'Un drop de merch al año', 'Eventos solo para miembros', 'Ahorras 33%'] })[p.id].map(x => '✓  ' + x).join('\n'), tagOp: p.id === 'free' ? 0 : 1, bg: s.plan === p.id ? 'linear-gradient(135deg, oklch(1 0 0 / 0.2), oklch(1 0 0 / 0.05))' : 'oklch(1 0 0 / 0.04)', bd: s.plan === p.id ? 'oklch(1 0 0 / 0.45)' : 'oklch(1 0 0 / 0.12)' })),
-      perks: ['Canales cerrados: #expertos, #retos y #drops', 'Sesiones con asesores reales', 'Historias y pósters sin límite', 'Acceso anticipado a colecciones y eventos'],
-      sumPlan: [{ id: 'free', name: 'Free', tag: 'Actual', sub: 'Canales abiertos y asesores', price: '$0', per: 'siempre', amt: 0 }, { id: 'mensual', name: 'Plus', tag: 'Popular', sub: 'Canales cerrados, asesor sin límite y My closet ilimitado', price: '$14.900', per: 'COP / mes', amt: 14900 }, { id: 'anual', name: 'Pro', tag: 'Ahorra 33%', sub: 'Todo Plus y un drop de merch al año', price: '$119.900', per: 'COP / año', amt: 119900 }].find(p => p.id === s.plan).name, sumTotal: (() => { const a = [{ id: 'free', name: 'Free', tag: 'Actual', sub: 'Canales abiertos y asesores', price: '$0', per: 'siempre', amt: 0 }, { id: 'mensual', name: 'Plus', tag: 'Popular', sub: 'Canales cerrados, asesor sin límite y My closet ilimitado', price: '$14.900', per: 'COP / mes', amt: 14900 }, { id: 'anual', name: 'Pro', tag: 'Ahorra 33%', sub: 'Todo Plus y un drop de merch al año', price: '$119.900', per: 'COP / año', amt: 119900 }].find(p => p.id === s.plan).amt; return '$' + a.toLocaleString('es-CO') + ' COP'; })(),
-      sumMethod: (s.payCards.find(c => c.id === s.payId) ? s.payCards.find(c => c.id === s.payId).brand + ' •••• ' + s.payCards.find(c => c.id === s.payId).last : { nequi: 'Nequi', pse: 'PSE', pay: 'Apple Pay / Google Pay', cod: 'Efectivo' }[s.payId]),
-      payLabel: s.paying ? 'Procesando…' : (s.plan === 'free' ? 'Continuar gratis' : 'Pagar y activar'),
-      payNow: () => { if (s.paying) return; this.setState({ paying: true }); setTimeout(() => this.setState({ paying: false, paid: true, paidText: s.plan === 'free' ? 'Sigues en el plan Free.' : 'Ya tienes acceso a los canales cerrados.' }), 1600); },
-      paidText: s.paidText || '', notAdding: !s.addingCard, addingCard: s.addingCard, cNum: s.cNum, cName: s.cName, cExp: s.cExp, cCvv: s.cCvv, cardError: s.cardError,
-      onNum: (e) => { const d = e.target.value.replace(/\D/g, '').slice(0, 16); this.setState({ cNum: d.replace(/(.{4})/g, '$1 ').trim() }); },
-      onName: (e) => this.setState({ cName: e.target.value.slice(0, 26) }),
-      onExp: (e) => { const d = e.target.value.replace(/\D/g, '').slice(0, 4); this.setState({ cExp: d.length > 2 ? d.slice(0, 2) + '/' + d.slice(2) : d }); },
-      onCvv: (e) => this.setState({ cCvv: e.target.value.replace(/\D/g, '').slice(0, 4) }),
-      openAdd: () => this.setState({ addingCard: true, cardError: '' }),
-      cardBrand: s.addingCard && s.cNum ? (s.cNum[0] === '4' ? 'VISA' : s.cNum[0] === '5' ? 'MASTERCARD' : 'CARD') : (s.payCards[0] ? s.payCards[0].brand : 'CARD'),
-      cardPreviewNum: s.addingCard && s.cNum ? (s.cNum + ' ••••  ••••  ••••  ••••').slice(0, 19) : '••••  ••••  ••••  ' + (s.payCards[0] ? s.payCards[0].last : '0000'),
-      cardPreviewName: s.addingCard ? (s.cName || 'Nombre apellido') : 'Tu tarjeta',
-      cardPreviewExp: s.addingCard ? (s.cExp || 'MM/AA') : '12/28',
-      saveCard: () => { const n = s.cNum.replace(/\s/g, ''); if (n.length < 15) return this.setState({ cardError: 'El número de tarjeta está incompleto.' }); if (!s.cName.trim()) return this.setState({ cardError: 'Escribe el nombre que aparece en la tarjeta.' }); if (!/^\d\d\/\d\d$/.test(s.cExp)) return this.setState({ cardError: 'Fecha inválida. Usa MM/AA.' }); if (s.cCvv.length < 3) return this.setState({ cardError: 'El CVV debe tener 3 o 4 dígitos.' }); const id = 'c' + Date.now(); this.setState({ payCards: [...s.payCards, { id, brand: n[0] === '4' ? 'VISA' : n[0] === '5' ? 'MASTERCARD' : 'CARD', last: n.slice(-4), name: s.cName }], payId: id, addingCard: false, cNum: '', cName: '', cExp: '', cCvv: '', cardError: '' }); },
-      payMethods: [...s.payCards.map(c => ({ id: c.id, tag: c.brand.slice(0, 4), name: c.brand + ' •••• ' + c.last, sub: '' })), { id: 'nequi', tag: 'NEQ', name: 'Nequi', sub: 'Aprueba desde tu app' }, { id: 'pse', tag: 'PSE', name: 'PSE', sub: 'Débito desde tu banco' }].map(m => ({ ...m, logo: m.tag === 'VISA' ? 'url(' + rs(rs('assets/logo-visa.svg')) + ')' : m.tag === 'MAST' ? 'url(' + rs(rs('assets/logo-mastercard.svg')) + ')' : 'none', tagT: (m.tag === 'VISA' || m.tag === 'MAST') ? '' : m.tag, logoC: 'oklch(0.98 0 0)', go: () => this.setState({ payId: m.id }), dot: s.payId === m.id ? 1 : 0, bg: s.payId === m.id ? 'linear-gradient(135deg, oklch(1 0 0 / 0.2), oklch(1 0 0 / 0.05))' : 'oklch(1 0 0 / 0.04)', bd: s.payId === m.id ? 'oklch(1 0 0 / 0.4)' : 'oklch(1 0 0 / 0.12)' })),
-      payStatus: 'Método elegido: ' + ((s.payCards.find(c => c.id === s.payId) && (s.payCards.find(c => c.id === s.payId).brand + ' •••• ' + s.payCards.find(c => c.id === s.payId).last)) || { nequi: 'Nequi', pse: 'PSE', pay: 'Apple Pay / Google Pay', cod: 'Contra entrega' }[s.payId]),
+      helpItems: (() => { const q = s.helpQ.trim().toLowerCase(); return [['¿Cómo pido una sesión con un asesor?','Ve a Asesores, elige a la persona que quieras y toca Pedir una sesión. Te escribirá en menos de 24 horas.'],['¿Cómo entro a un canal?','En Comunidad elige un canal y toca JOIN. Los canales cerrados son de KHAOS+.'],['¿Cómo funciona My closet?','Desde Perfil abre My closet. Toca una prenda para verla en 3D o usa Combinar para armar un outfit.'],['¿Cómo cierro sesión?','Perfil → Cerrar sesión. Te pedimos confirmar con un segundo toque.']].filter(([a, b]) => !q || (a + ' ' + b).toLowerCase().includes(q)).map(([a, b], i) => ({ q: a, a: b, go: () => this.setState({ helpOpen: s.helpOpen === i ? -1 : i }), sign: s.helpOpen === i ? '−' : '+', disp: s.helpOpen === i ? 'block' : 'none', bg: s.helpOpen === i ? 'oklch(1 0 0 / 0.1)' : 'oklch(1 0 0 / 0.04)' })); })(),
+      helpEmpty: [['¿Cómo pido una sesión con un asesor?','Ve a Asesores, elige a la persona que quieras y toca Pedir una sesión. Te escribirá en menos de 24 horas.'],['¿Cómo entro a un canal?','En Comunidad elige un canal y toca JOIN. Los canales cerrados son de KHAOS+.'],['¿Cómo funciona My closet?','Desde Perfil abre My closet. Toca una prenda para verla en 3D o usa Combinar para armar un outfit.'],['¿Cómo cierro sesión?','Perfil → Cerrar sesión. Te pedimos confirmar con un segundo toque.']].some(([a, b]) => !s.helpQ.trim() || (a + ' ' + b).toLowerCase().includes(s.helpQ.trim().toLowerCase())) ? 'none' : 'block',
       
       tryStageRef: this.tryStageRef, videoRef: this.videoRef, tryCamOn: s.tryConsent === 'cam', tryErr: s.tryErr || '', tryCam: this.startCam, stopCam: this.stopCam, tryPhotoOn: s.tryConsent === true, tryAsk: s.tryConsent === null,
       tryYes: () => this.setState({ tryConsent: true }), tryNo: () => this.setState({ tryConsent: false }),
@@ -1407,20 +1483,44 @@ class Component extends DCLogic {
       phrase: BANNERS[s.phraseI % BANNERS.length].t, phraseKind: BANNERS[s.phraseI % BANNERS.length].k === 'h' ? 'Historia para inspirarte' : 'Frase para ti', phraseFs: BANNERS[s.phraseI % BANNERS.length].k === 'h' ? '15px' : '26px', phraseFF: BANNERS[s.phraseI % BANNERS.length].k === 'h' ? "'Helvetica Neue',Helvetica,Arial,sans-serif" : "'Stretch Pro','Helvetica Neue',Helvetica,Arial,sans-serif", phraseTT: 'none',
       aboutTiles: [['Qué es KHAOS', 'Un lugar para jóvenes de 18 a 25 años donde nadie te juzga. Aquí encuentras tu estilo, a personas reales que te acompañan y una comunidad que te hace sentir bien contigo.'], ['Cómo nació', 'Nació de una idea simple: la ropa y las redes no deberían hacerte sentir menos. Empezó entre amigos que querían un espacio seguro, y hoy es de todos.']].map(([t, x], i) => ({ t, x, show: s.aboutOpen === i ? 'block' : 'none', tog: () => this.setState({ aboutOpen: s.aboutOpen === i ? -1 : i }) })), phraseO: s.phraseO, phraseY: s.phraseO ? 0 : 8, nextPhrase: this.nextPhrase, enableGyro: this.enableGyro, gyroBtn: !s.gyro && ((window.DeviceMotionEvent && typeof window.DeviceMotionEvent.requestPermission === 'function') || (window.DeviceOrientationEvent && typeof window.DeviceOrientationEvent.requestPermission === 'function')) ? 'flex' : 'none',
       posts: s.posts[s.channel].map((p, i) => {
-        const key = s.channel + i; const on = !!s.liked[key]; const r = !!s.rted[key];
-        const likesN = p.likes + (on ? 1 : 0);
-        const pid = p.id || ('seed-' + s.channel + '-' + p.user + '-' + p.time); const got = (s.reacts[pid] || []); const open = !!s.pickOpen[pid];
-        return { ...p, circle: !!p.circle, likesL: '', repShow: p.mine ? 'none' : 'flex', repLabel: (s.reports[pid] || 0) >= 3 ? 'Cuenta eliminada' : ((s.reports[pid] || 0) ? 'Reportado ' + s.reports[pid] + '/3' : 'Reportar'), repCol: (s.reports[pid] || 0) >= 3 ? 'oklch(0.8 0.12 25)' : 'oklch(0.75 0.01 250)', report: () => this.setState(st => ({ reports: { ...st.reports, [pid]: Math.min(3, (st.reports[pid] || 0) + 1) } })),
+        const pid = p.id || ('seed-' + s.channel + '-' + p.user + '-' + p.time); const open = !!s.pickOpen[pid];
+        const remote = !!p.remote;
+        const got = remote ? (p.mine ? (p.phrases || []) : (p.myPhrases || [])) : (s.reacts[pid] || []);
+        const locRep = (s.reports[pid] || 0);
+        const reported = remote ? !!p.reported : locRep > 0;
+        const armed = s.delArm === pid;
+        return { ...p, circle: !!p.circle, likesL: '', repShow: p.mine ? 'none' : 'flex', repLabel: reported ? 'Reportado ✓' : 'Reportar', repCol: reported ? 'oklch(0.8 0.12 25)' : 'oklch(0.75 0.01 250)',
+          report: () => {
+            if (reported) return;
+            if (!remote) return this.setState(st => ({ reports: { ...st.reports, [pid]: 1 } }));
+            this.patchPost(pid, q => ({ ...q, reported: true }));
+            KhaosStore.reportPost(pid).then(() => this.say('Gracias. Revisaremos este post.')).catch(() => { this.patchPost(pid, q => ({ ...q, reported: false })); this.say('No pudimos enviar el reporte.'); });
+          },
+          delShow: p.mine ? 'flex' : 'none', delLabel: armed ? '¿Seguro? Toca otra vez' : 'Eliminar', delCol: armed ? 'oklch(0.8 0.12 25)' : 'oklch(0.75 0.01 250)',
+          del: () => {
+            if (!armed) { this.setState({ delArm: pid }); setTimeout(() => this.setState(st => (st.delArm === pid ? { delArm: null } : null)), 3000); return; }
+            this.setState({ delArm: null });
+            if (!remote) return this.setState(st => { const posts = {}; Object.keys(st.posts).forEach(ch => { posts[ch] = st.posts[ch].filter(q => q.id !== pid); }); return { posts, myPosts: Math.max(0, st.myPosts - 1) }; });
+            KhaosStore.deletePost(pid).then(() => this.loadRemote()).catch(() => this.say('No pudimos eliminar el post.'));
+          },
+          pickShow: p.mine ? 'none' : 'flex',
           hasPhoto: !!p.photo, photoBg: p.photo ? 'url(' + p.photo + ')' : 'none', phrases: got, hasPhrases: got.length > 0, phraseLabel: p.mine ? 'Lo que dijeron de ti' : 'Frases para ' + p.user, pickOpen: open,
           togglePick: () => this.setState(st => ({ pickOpen: { ...st.pickOpen, [pid]: !st.pickOpen[pid] } })),
-          opts: PHRASES_GIVE.map(t => { const on = got.includes(t); return { t, col: on ? 'oklch(0.12 0 0)' : 'oklch(0.98 0 0)', bg: on ? 'oklch(0.9 0.05 235)' : 'oklch(1 0 0 / 0.08)', give: () => this.setState(st => { const cur = st.reacts[pid] || []; return { reacts: { ...st.reacts, [pid]: on ? cur.filter(x => x !== t) : [...cur, t] } }; }) }; }), rtsL: '', repliesL: '', handle: p.anon ? 'kh-' + (1000 + i * 37) : p.user.toLowerCase().replace(/[^a-z0-9_.]/g, ''), initial: p.anon ? '?' : p.user[0].toUpperCase(), tint: p.anon ? 'oklch(0.3 0.01 250)' : p.user === 'KHAOS' ? 'linear-gradient(135deg, oklch(0.6 0.064 230), oklch(0.4 0.16 20))' : 'oklch(0.3 0.04 250)', likes: p.likes + (on ? 1 : 0), likeColor: on ? 'oklch(0.65 0.2 15)' : 'inherit', replies: Math.round(p.likes / 4), rts: Math.round(p.likes / 3) + (r ? 1 : 0), rtColor: r ? 'oklch(0.75 0.15 160)' : 'inherit', react: () => this.setState({ liked: { ...s.liked, [key]: !on } }), doRt: () => this.setState({ rted: { ...s.rted, [key]: !r } }), doReply: () => this.setState({ postDraft: '@' + p.user.toLowerCase().replace(/[^a-z0-9_.]/g, '') + ' ' }) };
+          opts: PHRASES_GIVE.map(t => { const on = got.includes(t); return { t, col: on ? 'oklch(0.12 0 0)' : 'oklch(0.98 0 0)', bg: on ? 'oklch(0.9 0.05 235)' : 'oklch(1 0 0 / 0.08)',
+            give: () => {
+              if (!remote) return this.setState(st => { const cur = st.reacts[pid] || []; return { reacts: { ...st.reacts, [pid]: on ? cur.filter(x => x !== t) : [...cur, t] } }; });
+              this.patchPost(pid, q => ({ ...q, myPhrases: on ? (q.myPhrases || []).filter(x => x !== t) : [...(q.myPhrases || []), t] }));
+              KhaosStore.setPhrase(pid, t, !on).catch(() => { this.loadRemote(); this.say('No pudimos guardar tu palabra.'); });
+            } }; }),
+          repliesL: '', handle: p.anon ? 'kh-' + (1000 + i * 37) : p.user.toLowerCase().replace(/[^a-z0-9_.]/g, ''), initial: p.anon ? '?' : p.user[0].toUpperCase(), tint: p.anon ? 'oklch(0.3 0.01 250)' : p.user === 'KHAOS' ? 'linear-gradient(135deg, oklch(0.6 0.064 230), oklch(0.4 0.16 20))' : 'oklch(0.3 0.04 250)',
+          doReply: () => this.setState({ postDraft: '@' + p.user.toLowerCase().replace(/[^a-z0-9_.]/g, '') + ' ' }) };
       }),
+      noPosts: (s.posts[s.channel] || []).length === 0 && KhaosStore.enabled,
       postDraft: s.postDraft, setPostDraft: e => this.setState({ postDraft: e.target.value }), sendPost: this.sendPost,
       profileIdentity: s.isAdvisor ? 'Asesor/a KHAOS' : (idObj ? idObj.n : 'Identidad sin descubrir'), myPosts: s.myPosts,
       faqOpen: s.faq,
       settings: [
         { label: 'Mi identidad KHAOS', value: idObj ? 'Ver' : 'Descubrir', go: go('asesor') },
-        { label: 'Membresía KHAOS+', value: '', go: go('pagos') },
         { label: 'Ayuda', value: '', go: go('ayuda') },
         { label: 'Identidad visual', value: '', go: go('identidad') },
         { label: 'Ropa: donar e inspirarte', value: '', go: go('ropa') },
@@ -1431,7 +1531,7 @@ class Component extends DCLogic {
         { label: 'Redes', value: '@khaos', go: () => {} }
       ],
       logoutLabel: s.confirmOut ? '¿Seguro? Toca otra vez para salir' : 'Cerrar sesión',
-      logout: () => { if (!s.confirmOut) { this.setState({ confirmOut: true }); setTimeout(() => this.setState({ confirmOut: false }), 3000); return; } KhaosStore.signOut(); this.stopSync(); this.setState((st) => ({ posts: JSON.parse(JSON.stringify(SEED)), myPosts: 0, closet: st.closet.filter((c) => !c.synced) })); this.setState({ authed: false, fPass: '', confirmOut: false, helpQ: '', helpOpen: -1, screen: 'splash', onb: 0, regMode: 'login', isAdvisor: false, aMode: 'login', aStep: 0, aErr: '', aSaved: false }); },
+      logout: () => { if (!s.confirmOut) { this.setState({ confirmOut: true }); setTimeout(() => this.setState({ confirmOut: false }), 3000); return; } KhaosStore.signOut(); this.stopSync(); this.setState((st) => ({ posts: freshPosts(), myPosts: 0, closet: st.closet.filter((c) => !c.synced) })); this.setState({ authed: false, fPass: '', confirmOut: false, helpQ: '', helpOpen: -1, screen: 'splash', onb: 0, regMode: 'login', isAdvisor: false, aMode: 'login', aStep: 0, aErr: '', aSaved: false, requests: [], aName: '', aEmail: '', aPass: '', aBio: '', aTitle: '', aLine: '', aLink: '', aRate: '', aSpecs: [], aYears: '', aHow: [], aAvail: [], aPhoto: null, advReq: null }); if (KhaosStore.enabled) ADV.length = 0; this._aFile = null; },
       tabs: [['home', '⌂', 'Inicio'], ['asesor', '✦', 'Asesor'], ['comunidad', '#', 'Comunidad'], ['articulos', '▤', 'Historias'], ['perfil', '◉', 'Perfil']].map(([k, icon, label]) => ({ icon, label, go: go(k), color: s.screen === k ? 'oklch(0.98 0 0)' : 'oklch(0.62 0.005 250)', weight: s.screen === k ? '700' : '400', bar: 'transparent', bg: s.screen === k ? 'linear-gradient(135deg, oklch(1 0 0 / 0.2), oklch(1 0 0 / 0.05))' : 'transparent', bd: s.screen === k ? 'oklch(1 0 0 / 0.25)' : 'transparent', sh: s.screen === k ? 'inset 0 1px 0 oklch(1 0 0 / 0.3)' : 'none' }))
     };
     v.tabs.forEach((x, i) => { v['t' + i] = x; });
