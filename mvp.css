@@ -1,0 +1,120 @@
+/* KHAOS MVP — layout responsive (sin marco de teléfono).
+   Móvil: la app ocupa toda la pantalla.
+   Escritorio: columna centrada con panel de marca al lado. */
+
+html, body { height: 100%; overscroll-behavior: none; }
+body { -webkit-text-size-adjust: 100%; }
+button, input, textarea, select { font-family: inherit; }
+:focus-visible { outline: 2px solid oklch(0.313 0.061 230); outline-offset: 2px; }
+
+.kh-stage {
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 72px;
+  padding: 0;
+}
+
+/* Contenedor de la app */
+.kh-shell {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+}
+.kh-screen {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.kh-safe-top { flex: none; height: max(env(safe-area-inset-top), 14px); }
+
+/* Panel de marca: solo escritorio */
+.kh-aside { display: none; }
+
+@media (min-width: 640px) {
+  .kh-stage { padding: 24px; }
+  .kh-shell {
+    width: 440px;
+    height: min(calc(100dvh - 48px), 920px);
+    min-height: 640px;
+    border-radius: 32px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px oklch(0.06 0.004 250 / 0.1), 0 30px 80px oklch(0 0 0 / 0.22);
+  }
+  .kh-safe-top { height: 14px; }
+}
+
+@media (min-width: 1000px) {
+  .kh-aside {
+    position: relative;
+    z-index: 1;
+    max-width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .kh-aside-kicker {
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: oklch(0.313 0.061 230);
+  }
+  .kh-aside-logo {
+    font-family: 'Stretch Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight: 800;
+    font-size: 54px;
+    line-height: 0.9;
+    text-transform: uppercase;
+  }
+  .kh-aside-copy { margin: 0; font-size: 15px; line-height: 1.6; color: oklch(0.286 0.004 250); }
+  .kh-aside-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .kh-aside-list li {
+    position: relative;
+    padding-left: 18px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: oklch(0.213 0.004 250);
+  }
+  .kh-aside-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: oklch(0.55 0.2 25);
+  }
+  .kh-aside-note {
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: oklch(0.45 0.004 250);
+    padding-top: 6px;
+    border-top: 1px solid oklch(0.06 0.004 250 / 0.12);
+  }
+}
+
+/* Modo desarrollo (?dev): lista de saltos entre pantallas */
+.kh-dev { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; max-height: 36vh; overflow-y: auto; }
+.kh-dev-title { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: oklch(0.45 0.004 250); }
+.kh-dev-btn {
+  text-align: left;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  color: oklch(0.132 0.004 250);
+  border: 1px solid oklch(0.06 0.004 250 / 0.12);
+}

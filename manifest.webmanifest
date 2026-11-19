@@ -1,0 +1,14 @@
+{
+  "name": "KHAOS",
+  "short_name": "KHAOS",
+  "description": "KHAOS — La moda clasifica. Nosotros no.",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f2f0ec",
+  "theme_color": "#f2f0ec",
+  "lang": "es",
+  "icons": [
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
