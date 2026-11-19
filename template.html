@@ -2,25 +2,14 @@
 <div class="kh-stage" style="background:{{ outerBg }}">
   {{ bgOrbs }}
 
-  <aside class="kh-aside">
-    <div class="kh-aside-kicker">Moda sin etiquetas</div>
-    <div class="kh-aside-logo">KHAOS</div>
-    <p class="kh-aside-copy">La moda clasifica. Nosotros no. Un asesor de estilo con tu closet, un probador y una comunidad para personas de 18 a 25 años.</p>
-    <ul class="kh-aside-list">
-      <li>Asesor de estilo con análisis de rostro y color</li>
-      <li>My closet y probador virtual</li>
-      <li>Comunidad por canales y historias</li>
-    </ul>
-    <div class="kh-aside-note">Versión MVP · los datos se guardan solo en este dispositivo</div>
-    <sc-if value="{{ isDev }}" hint-placeholder-val="{{ false }}">
-      <div class="kh-dev">
-        <div class="kh-dev-title">Modo desarrollo</div>
-        <sc-for list="{{ jumps }}" as="j" hint-placeholder-count="8">
-          <button sc-camel-on-click="{{ j.go }}" class="kh-dev-btn" style="background:{{ j.bg }}" style-active="transform:scale(.96)">{{ j.label }}</button>
-        </sc-for>
-      </div>
-    </sc-if>
-  </aside>
+  <sc-if value="{{ isDev }}" hint-placeholder-val="{{ false }}">
+    <aside class="kh-dev">
+      <div class="kh-dev-title">Modo desarrollo</div>
+      <sc-for list="{{ jumps }}" as="j" hint-placeholder-count="8">
+        <button sc-camel-on-click="{{ j.go }}" class="kh-dev-btn" style="background:{{ j.bg }}" style-active="transform:scale(.96)">{{ j.label }}</button>
+      </sc-for>
+    </aside>
+  </sc-if>
 
   <main class="kh-shell">
     <div class="kh-screen" style="background:{{ screenBg }}">

@@ -6,9 +6,9 @@ comunidad por canales e historias.
 
 ## Qué cambió respecto al prototipo
 
-- Se quitó el marco de teléfono y la barra de estado simulada: en móvil la
-  app ocupa toda la pantalla; en escritorio se muestra una columna
-  centrada con un panel de marca (`mvp.css`).
+- Se quitó el marco de teléfono, la barra de estado simulada y el panel de
+  prototipo: la página muestra solo la app (`mvp.css`), a pantalla completa
+  en móvil y en una columna centrada en escritorio.
 - Sesión persistente: la app recuerda tu sesión al recargar. Los datos de
   tarjeta nunca se guardan.
 - Se retiró el listener de `postMessage` que permitía a otra página
