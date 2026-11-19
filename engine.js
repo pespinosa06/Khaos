@@ -61,6 +61,23 @@
     return out;
   }
 
+
+  // Estilos como objeto (estilo React): { fontSize: 12, background: '...' }.
+  // Los numeros sin unidad reciben "px", salvo propiedades sin unidad.
+  var UNITLESS = { opacity:1, zIndex:1, fontWeight:1, lineHeight:1, flex:1, flexGrow:1, flexShrink:1, order:1, aspectRatio:1, zoom:1, scale:1, WebkitLineClamp:1, lineClamp:1, gridRow:1, gridColumn:1 };
+  function styleValToObj(v) {
+    if (v && typeof v === 'object') {
+      var out = {};
+      Object.keys(v).forEach(function (k) {
+        var x = v[k];
+        if (x === null || x === undefined || x === false) return;
+        out[k] = (typeof x === 'number' && x !== 0 && !UNITLESS[k] && k.indexOf('--') !== 0) ? x + 'px' : String(x);
+      });
+      return out;
+    }
+    return styleStrToObj(typeof v === 'string' ? v : '');
+  }
+
   function camelFromKebab(kebab) {
     return kebab.replace(/-([a-z0-9])/g, function (_, c) { return c.toUpperCase(); });
   }
@@ -85,7 +102,7 @@
   // CSS o como objeto camelCase; ambos formatos se soportan.
   function h(tag, props) {
     props = props || {};
-    if (typeof props.style === 'string') props = Object.assign({}, props, { style: styleStrToObj(props.style) });
+    if (typeof props.style === 'string' || (props.style && typeof props.style === 'object')) props = Object.assign({}, props, { style: styleValToObj(props.style) });
     var children = [];
     for (var i = 2; i < arguments.length; i++) {
       var c = arguments[i];
@@ -152,17 +169,17 @@
       var val = attrs[a].value;
       if (name === 'style') {
         var styleStr = interp(val, scope);
-        elProps.style = styleStrToObj(typeof styleStr === 'string' ? styleStr : '');
+        elProps.style = styleValToObj(styleStr);
         continue;
       }
       if (name === 'style-hover') {
         var hv = interp(val, scope);
-        hoverStyle = styleStrToObj(typeof hv === 'string' ? hv : '');
+        hoverStyle = styleValToObj(hv);
         continue;
       }
       if (name === 'style-active') {
         var av = interp(val, scope);
-        activeStyle = styleStrToObj(typeof av === 'string' ? av : '');
+        activeStyle = styleValToObj(av);
         continue;
       }
       if (name === 'ref') {

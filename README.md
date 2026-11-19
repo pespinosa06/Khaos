@@ -1,4 +1,4 @@
-# KHAOS App — MVP web
+# KHAOS App — MVP web (diseño v12)
 
 App web estática (HTML/CSS/JS puro, sin build ni dependencias) para
 jóvenes de 18 a 25 años: asesor de estilo, My closet, probador,
@@ -6,6 +6,10 @@ comunidad por canales e historias.
 
 ## Qué cambió respecto al prototipo
 
+- **Diseño v12:** tema oscuro, tipografía Manrope, y pantallas nuevas (asesores
+  reales, "Mi día", registro de asesor, verificación de correo). El markup y la
+  lógica salen del archivo `KHAOS App v12`; las imágenes y tipografías están en
+  `assets/`.
 - Se quitó el marco de teléfono, la barra de estado simulada y el panel de
   prototipo: la página muestra solo la app (`mvp.css`), a pantalla completa
   en móvil y en una columna centrada en escritorio.
@@ -38,13 +42,16 @@ Para entrar directo sin confirmar el correo, desactiva *Confirm email* en
 Supabase → Authentication → Sign In / Providers → Email. Si queda activo, la
 app avisa al usuario que revise su correo.
 
+Notas: la cédula del registro solo se valida en el dispositivo; no se envía ni se
+guarda en Supabase. Los posts con foto y la cuenta de asesor siguen siendo locales.
+
 Pendiente: likes y respuestas compartidas, fotos del closet en Storage
 (hoy van dentro de la tabla), moderación de posts y pagos reales.
 
 ## Estructura
 
 - `index.html` — punto de entrada.
-- `app.css` — estilos y animaciones (incluye la tipografía Stretch Pro embebida).
+- `app.css` — estilos y animaciones del diseño v12 (fuentes en `assets/fonts/`).
 - `mvp.css` — layout responsive del MVP.
 - `config.js` — URL y clave pública de Supabase.
 - `store.js` — capa de datos: local + Supabase (auth, posts, closet).
